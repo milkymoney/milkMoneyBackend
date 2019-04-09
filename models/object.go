@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 	"time"
+	"fmt"
 )
 
 var (
@@ -11,19 +12,20 @@ var (
 )
 
 type Object struct {
-	ObjectId   string
+	ObjectId   string `orm:"pk"`
 	Score      int64
 	PlayerName string
 }
 
 func init() {
 	Objects = make(map[string]*Object)
-	Objects["hjkhsbnmn123"] = &Object{"hjkhsbnmn123", 100, "astaxie"}
-	Objects["mjjkxsxsaa23"] = &Object{"mjjkxsxsaa23", 101, "someone"}
 }
 
 func AddOne(object Object) (ObjectId string) {
 	object.ObjectId = "astaxie" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	o := getOrm()
+	id, err := o.Insert(&object)
+	fmt.Printf("Insert object with ID:%d, ERR:%v\n",id,err)
 	Objects[object.ObjectId] = &object
 	return object.ObjectId
 }
