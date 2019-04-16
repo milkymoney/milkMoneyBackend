@@ -13,19 +13,19 @@ func init() {
 }
 
 type User struct {
-	Id      		string				`orm:"pk"`
+	Id      		int
 	Username		string
 	Password		string
 	Balance			int
-	AcceptRelation 	[]*AcceptRelation	`orm:"rel(fk);null;on_delete(do_nothing)"`
-	ReleaseRelation []*ReleaseRelation	`orm:"rel(fk);null;on_delete(do_nothing)"`
+	AcId			int
+	ReId			int
 }
 
 
 func AddUser(u User) string {
-	u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
 	o := orm.NewOrm()
-	o.Insert(&u)
+	id,_ := o.Insert(&u)
+	u.Id = id
 	return u.Id
 }
 

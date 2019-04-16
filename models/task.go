@@ -20,7 +20,7 @@ const(
 
 //注：原则上，所有的输入数据合法性检查由controller处进行。在models进行的是与模型之间数据关系有关的检查，比如任务的最多接纳人数是否达到上界，等。
 type Task struct{
-	Id				string				`orm:"pk"`
+	Id				int				`orm:"pk"`
 	Type			string//原则上是不接受空格的，表示任务属于某个类型，类型之间互斥
 	Description		string
 	Reward			float32
@@ -29,8 +29,8 @@ type Task struct{
 	State			TaskState	`orm:default(0)`
 	Priority		int32	`orm:default(0)`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
 	MaxAccept		int32 	`orm:default(1)`//任务同时允许的最大接受人数
-	AcceptRelation 	[]*AcceptRelation	`orm:"rel(fk);null;on_delete(do_nothing)"`
-	ReleaseRelation []*ReleaseRelation	`orm:"rel(fk);null;on_delete(do_nothing)"`
+	AcId			int
+
 }
 
 /*
@@ -43,7 +43,7 @@ type Task struct{
 调用失败：返回""与err
 	可能场景：重复的taskId（如果不是用户指定的，则不会有这种情况）
 */
-func CreateTask(task Task) (taskId string,err error){
+func CreateTask(task *Task) (taskId int,err error){
 
 }
 
@@ -58,7 +58,7 @@ func CreateTask(task Task) (taskId string,err error){
 	可能场景：不存在taskId，或是taskId对应的任务状态为已删除
 */
 
-func GetTask(taskId string) (task *Task,err error){
+func GetTask(taskId int) (task *Task,err error){
 
 }
 
@@ -73,7 +73,7 @@ func GetTask(taskId string) (task *Task,err error){
 	可能场景：不存在taskId，或是taskId对应的任务状态为已删除
 */
 
-func UpdateUser(taskId string,tt *Task) (task *Task,err error){
+func UpdateUser(taskId int,tt *Task) (task *Task,err error){
 
 }
 
@@ -87,7 +87,7 @@ func UpdateUser(taskId string,tt *Task) (task *Task,err error){
 调用失败：返回err
 	调用失败场景：不存在taskId，或是taskId对应的任务状态为已删除
 */
-func DeleteTask(taskId string){
+func DeleteTask(taskId int){
 
 }
 
@@ -103,7 +103,7 @@ func DeleteTask(taskId string){
 调用失败：返回err
 	调用失败场景：不存在taskId，或taskId对应的任务状态已经为已删除
 */
-func ChangeState(taskId string, ts TaskState) (err error){
+func ChangeState(taskId int, ts TaskState) (err error){
 
 }
 
@@ -119,7 +119,7 @@ func ChangeState(taskId string, ts TaskState) (err error){
 调用失败：返回error
 	调用失败场景：不存在userId或taskId，或者userId已经接受了此任务，或者任务的接纳人数已经达到上限
 */
-func AcceptTask(userId,taskId string) (err error){
+func AcceptTask(userId,taskId int) (err error){
 
 }
 
@@ -136,7 +136,7 @@ func AcceptTask(userId,taskId string) (err error){
 	调用失败场景：不存在userId或taskId，或者userId没有接受这个task，这个AcceptRelation不存在。
 		或者存在，但是该任务已经完成
 */
-func CancelTask(userId,taskId string) (err error){
+func CancelTask(userId,taskId int) (err error){
 
 }
 
@@ -153,6 +153,6 @@ func CancelTask(userId,taskId string) (err error){
 调用失败：返回error
 	调用失败场景：不存在userId或taskId，或者userId没有接受任务，或者该任务已经完成
 */
-func FinishTask(userId,taskId string) (err error){
+func FinishTask(userId,taskId int) (err error){
 	
 }

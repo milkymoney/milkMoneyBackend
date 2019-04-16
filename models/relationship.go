@@ -15,15 +15,15 @@ func init(){
 type AcceptRelation struct {
 	Id			int 		`orm:"pk"`//自增数字序列作为主键
 	AcceptDate	string
-	User 		*User 		`orm:"reverse(many)"`
-	Task		*Task 		`orm:"reverse(many)"`
+	UserId		int
+	TaskId		int
 }
 
 type ReleaseRelation struct{
 	Id			int 		`orm:"pk"`//自增数字序列作为主键
 	ReleaseDate	string
-	User 		*User 		`orm:"reverse(many)"`
-	Task		*Task 		`orm:"reverse(many)"`
+	UserId		int
+	TaskId		int
 }
 
 /*
@@ -36,7 +36,7 @@ type ReleaseRelation struct{
 调用失败：nil,err对象
 	调用失败场景：查询不到对应的对象
 */
-func GetAcceptRelation(userId,taskId string) (relation *AcceptRelation,err error){
+func GetAcceptRelation(userId,taskId int) (relation *AcceptRelation,err error){
 
 }
 
@@ -50,7 +50,7 @@ func GetAcceptRelation(userId,taskId string) (relation *AcceptRelation,err error
 调用失败："",err对象
 	调用失败场景：暂时没有想到
 */
-func CreateAcceptRelation(relation *AcceptRelation) (id string,err error){
+func CreateAcceptRelation(relation *AcceptRelation) (acId int,err error){
 
 }
 
@@ -65,7 +65,7 @@ func CreateAcceptRelation(relation *AcceptRelation) (id string,err error){
 调用失败：nil,err对象
 	调用失败场景：查询不到对象
 */
-func DeleteAcceptRelation(userId,taskId string) (err error){
+func DeleteAcceptRelation(userId,taskId int) (err error){
 
 }
 
@@ -79,7 +79,7 @@ func DeleteAcceptRelation(userId,taskId string) (err error){
 调用失败：nil,err对象
 	调用失败场景：查询不到对应的对象
 */
-func GetReleaseRelation(userId,taskId string) (relation *ReleaseRelation,err error){
+func GetReleaseRelation(userId,taskId int) (relation *ReleaseRelation,err error){
 
 }
 
@@ -93,7 +93,7 @@ func GetReleaseRelation(userId,taskId string) (relation *ReleaseRelation,err err
 调用失败："",err对象
 	调用失败场景：暂时没有想到
 */
-func CreateReleaseRelation(relation *ReleaseRelation) (id string,err error){
+func CreateReleaseRelation(relation *ReleaseRelation) (reId int,err error){
 
 }
 
@@ -108,6 +108,6 @@ func CreateReleaseRelation(relation *ReleaseRelation) (id string,err error){
 调用失败：nil,err对象
 	调用失败场景：查询不到对象
 */
-func DeleteReleaseRelation(userId,taskId string) (err error){
+func DeleteReleaseRelation(userId,taskId int) (err error){
 
 }
