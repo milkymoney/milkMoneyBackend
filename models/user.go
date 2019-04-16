@@ -13,18 +13,17 @@ func init() {
 }
 
 type User struct {
-	Id      		string	`orm:"pk"`
+	Id      		string				`orm:"pk"`
 	Username		string
 	Password		string
 	Balance			int
-	AcceptRelation 	*AcceptRelation `orm:"reverse(one)"`
-	ReleaseRelation *ReleaseRelation `orm:"reverse(one)"`
+	AcceptRelation 	[]*AcceptRelation	`orm:"rel(fk)"`
+	ReleaseRelation []*ReleaseRelation	`orm:"rel(fk)"`
 }
 
 
 func AddUser(u User) string {
 	u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	//UserList[u.Id] = &u
 	o := orm.NewOrm()
 	o.Insert(&u)
 	return u.Id

@@ -1,7 +1,7 @@
 package models
 
 import(
-	"time"
+
 )
 
 func init(){
@@ -14,14 +14,14 @@ func init(){
 原则上一个用户不能够接受*/
 type AcceptRelation struct {
 	Id			int 		`orm:"pk"`//自增数字序列作为主键
-	AcceptDate	time.Time	`orm:type(datetime)`
-	User 		*User 		`orm:"null;rel(one);on_delete(set_null)"`//本地保存User
-	Task		*Task 		`orm:"null;rel(one);on_delete(set_null)"`//本地保存User
+	AcceptDate	string
+	User 		*User 		`orm:"reverse(many)"`
+	Task		*Task 		`orm:"reverse(many)"`
 }
 
 type ReleaseRelation struct{
 	Id			int 		`orm:"pk"`//自增数字序列作为主键
-	ReleaseDate	time.Time	`orm:type(datetime)`
-	User 		*User 		`orm:"null;rel(one);on_delete(set_null)"`//本地保存User
-	Task		*Task 		`orm:"null;rel(one);on_delete(set_null)"`//本地保存User
+	ReleaseDate	string
+	User 		*User 		`orm:"reverse(many)"`
+	Task		*Task 		`orm:"reverse(many)"`
 }
