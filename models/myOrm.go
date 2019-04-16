@@ -10,13 +10,8 @@ func init() {
 	fmt.Println("Begin to connect to sql")
     orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", "wty:97112500@tcp(127.0.0.1:3306)/test?charset=utf8")
-	orm.RegisterModel(new(Object))
+	orm.RegisterModel(new(User))
 	orm.RunSyncdb("default", false, true)
 	fmt.Println("Connect over")
-}
-
-func getOrm() orm.Ormer{
-	o := orm.NewOrm()
-	return o
 }
 
