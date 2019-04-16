@@ -13,10 +13,12 @@ func init() {
 }
 
 type User struct {
-	Id      	string	`orm:"pk"`
-	Username	string
-	Password	string
-	Balance		int
+	Id      		string	`orm:"pk"`
+	Username		string
+	Password		string
+	Balance			int
+	AcceptRelation 	*AcceptRelation `orm:"reverse(one)"`
+	ReleaseRelation *ReleaseRelation `orm:"reverse(one)"`
 }
 
 
