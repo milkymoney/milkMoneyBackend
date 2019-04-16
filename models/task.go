@@ -20,7 +20,7 @@ const(
 
 //注：原则上，所有的输入数据合法性检查由controller处进行。在models进行的是与模型之间数据关系有关的检查，比如任务的最多接纳人数是否达到上界，等。
 type Task struct{
-	Id				int				`orm:"pk"`
+	Id				int
 	Type			string//原则上是不接受空格的，表示任务属于某个类型，类型之间互斥
 	Description		string
 	Reward			float32
@@ -40,7 +40,7 @@ type Task struct{
 	1.向数据库中写入数据
 
 调用成功：直接返回taskId与nil
-调用失败：返回""与err
+调用失败：返回-1与err
 	可能场景：重复的taskId（如果不是用户指定的，则不会有这种情况）
 */
 func CreateTask(task *Task) (taskId int,err error){
@@ -73,7 +73,7 @@ func GetTask(taskId int) (task *Task,err error){
 	可能场景：不存在taskId，或是taskId对应的任务状态为已删除
 */
 
-func UpdateUser(taskId int,tt *Task) (task *Task,err error){
+func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 
 }
 
@@ -103,7 +103,7 @@ func DeleteTask(taskId int){
 调用失败：返回err
 	调用失败场景：不存在taskId，或taskId对应的任务状态已经为已删除
 */
-func ChangeState(taskId int, ts TaskState) (err error){
+func ChangeState(taskId int, ts TaskState) error{
 
 }
 
@@ -119,7 +119,7 @@ func ChangeState(taskId int, ts TaskState) (err error){
 调用失败：返回error
 	调用失败场景：不存在userId或taskId，或者userId已经接受了此任务，或者任务的接纳人数已经达到上限
 */
-func AcceptTask(userId,taskId int) (err error){
+func AcceptTask(userId,taskId int) error{
 
 }
 
@@ -136,7 +136,7 @@ func AcceptTask(userId,taskId int) (err error){
 	调用失败场景：不存在userId或taskId，或者userId没有接受这个task，这个AcceptRelation不存在。
 		或者存在，但是该任务已经完成
 */
-func CancelTask(userId,taskId int) (err error){
+func CancelTask(userId,taskId int) error{
 
 }
 
@@ -153,6 +153,6 @@ func CancelTask(userId,taskId int) (err error){
 调用失败：返回error
 	调用失败场景：不存在userId或taskId，或者userId没有接受任务，或者该任务已经完成
 */
-func FinishTask(userId,taskId int) (err error){
+func FinishTask(userId,taskId int) error{
 	
 }

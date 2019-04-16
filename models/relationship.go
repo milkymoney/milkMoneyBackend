@@ -13,14 +13,14 @@ func init(){
 但是实现上为一对一关系，即用户id与任务id绑定，一起组成acId
 原则上一个用户不能够接受*/
 type AcceptRelation struct {
-	Id			int 		`orm:"pk"`//自增数字序列作为主键
+	Id			int
 	AcceptDate	string
 	UserId		int
 	TaskId		int
 }
 
 type ReleaseRelation struct{
-	Id			int 		`orm:"pk"`//自增数字序列作为主键
+	Id			int
 	ReleaseDate	string
 	UserId		int
 	TaskId		int
@@ -65,7 +65,7 @@ func CreateAcceptRelation(relation *AcceptRelation) (acId int,err error){
 调用失败：nil,err对象
 	调用失败场景：查询不到对象
 */
-func DeleteAcceptRelation(userId,taskId int) (err error){
+func DeleteAcceptRelation(userId,taskId int) error{
 
 }
 
@@ -108,6 +108,6 @@ func CreateReleaseRelation(relation *ReleaseRelation) (reId int,err error){
 调用失败：nil,err对象
 	调用失败场景：查询不到对象
 */
-func DeleteReleaseRelation(userId,taskId int) (err error){
+func DeleteReleaseRelation(userId,taskId int) error{
 
 }
