@@ -25,3 +25,89 @@ type ReleaseRelation struct{
 	User 		*User 		`orm:"reverse(many)"`
 	Task		*Task 		`orm:"reverse(many)"`
 }
+
+/*
+函数目的：拿到AcceptRelation
+调用时机：需要使用userId和taskId拿到relation
+需要执行的任务：
+	1.从数据库中查询并返回对象
+
+调用成功：返回这个对象,nil
+调用失败：nil,err对象
+	调用失败场景：查询不到对应的对象
+*/
+func GetAcceptRelation(userId,taskId string) (relation *AcceptRelation,err error){
+
+}
+
+/*
+函数目的：创建AcceptRelation
+调用时机：需要将relation加入到数据库中
+需要执行的任务：
+	1.创建对象，并加入到数据库中
+
+调用成功：返回这个对象的id,nil
+调用失败："",err对象
+	调用失败场景：暂时没有想到
+*/
+func CreateAcceptRelation(relation *AcceptRelation) (id string,err error){
+
+}
+
+/*
+函数目的：删除AcceptRelation
+调用时机：需要将relation从数据库中删除
+需要执行的任务：
+	1.删除对象，并加入到数据库中
+	2.是否要拿到对应的user和task并从他们那里删除（我感觉不用，等待外键实验结果）
+
+调用成功：返回这个对象,nil
+调用失败：nil,err对象
+	调用失败场景：查询不到对象
+*/
+func DeleteAcceptRelation(userId,taskId string) (err error){
+
+}
+
+/*
+函数目的：拿到ReleaseRelation
+调用时机：需要使用userId和taskId拿到relation
+需要执行的任务：
+	1.从数据库中查询并返回对象
+
+调用成功：返回这个对象,nil
+调用失败：nil,err对象
+	调用失败场景：查询不到对应的对象
+*/
+func GetReleaseRelation(userId,taskId string) (relation *ReleaseRelation,err error){
+
+}
+
+/*
+函数目的：创建ReleaseRelation
+调用时机：需要将relation加入到数据库中
+需要执行的任务：
+	1.创建对象，并加入到数据库中
+
+调用成功：返回这个对象的id,nil
+调用失败："",err对象
+	调用失败场景：暂时没有想到
+*/
+func CreateReleaseRelation(relation *ReleaseRelation) (id string,err error){
+
+}
+
+/*
+函数目的：删除ReleaseRelation
+调用时机：需要将relation从数据库中删除
+需要执行的任务：
+	1.删除对象，并加入到数据库中
+	2.是否要拿到对应的user和task并从他们那里删除（我感觉不用，等待外键实验结果）
+
+调用成功：返回这个对象,nil
+调用失败：nil,err对象
+	调用失败场景：查询不到对象
+*/
+func DeleteReleaseRelation(userId,taskId string) (err error){
+
+}

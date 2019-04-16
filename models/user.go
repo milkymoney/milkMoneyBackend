@@ -17,8 +17,8 @@ type User struct {
 	Username		string
 	Password		string
 	Balance			int
-	AcceptRelation 	[]*AcceptRelation	`orm:"rel(fk)"`
-	ReleaseRelation []*ReleaseRelation	`orm:"rel(fk)"`
+	AcceptRelation 	[]*AcceptRelation	`orm:"rel(fk);null;on_delete(do_nothing)"`
+	ReleaseRelation []*ReleaseRelation	`orm:"rel(fk);null;on_delete(do_nothing)"`
 }
 
 
