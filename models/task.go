@@ -1,9 +1,5 @@
 package models
 
-import (
-	"github.com/astaxie/beego/orm"
-
-)
 
 func init(){
 
@@ -42,7 +38,7 @@ type Task struct{
 调用成功：直接返回taskId与nil
 调用失败：返回-1与err
 	可能场景：重复的taskId（如果不是用户指定的，则不会有这种情况）
-*/
+
 func CreateTask(task *Task) (taskId int,err error){
 
 }
@@ -56,7 +52,7 @@ func CreateTask(task *Task) (taskId int,err error){
 调用成功：直接返回task指针与nil
 调用失败：返回nil与错误对象
 	可能场景：不存在taskId，或是taskId对应的任务状态为已删除
-*/
+
 
 func GetTask(taskId int) (task *Task,err error){
 
@@ -71,7 +67,7 @@ func GetTask(taskId int) (task *Task,err error){
 调用成功：直接返回修改过的任务对象与nil
 调用失败：返回nil与错误对象
 	可能场景：不存在taskId，或是taskId对应的任务状态为已删除
-*/
+
 
 func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 
@@ -86,7 +82,7 @@ func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 调用成功：返回nil
 调用失败：返回err
 	调用失败场景：不存在taskId，或是taskId对应的任务状态为已删除
-*/
+
 func DeleteTask(taskId int){
 
 }
@@ -102,7 +98,7 @@ func DeleteTask(taskId int){
 调用成功：返回nil
 调用失败：返回err
 	调用失败场景：不存在taskId，或taskId对应的任务状态已经为已删除
-*/
+
 func ChangeState(taskId int, ts TaskState) error{
 
 }
@@ -118,7 +114,7 @@ func ChangeState(taskId int, ts TaskState) error{
 调用成功：nil
 调用失败：返回error
 	调用失败场景：不存在userId或taskId，或者userId已经接受了此任务，或者任务的接纳人数已经达到上限
-*/
+
 func AcceptTask(userId,taskId int) error{
 
 }
@@ -135,7 +131,7 @@ func AcceptTask(userId,taskId int) error{
 调用失败：返回error
 	调用失败场景：不存在userId或taskId，或者userId没有接受这个task，这个AcceptRelation不存在。
 		或者存在，但是该任务已经完成
-*/
+
 func CancelTask(userId,taskId int) error{
 
 }
@@ -152,7 +148,8 @@ func CancelTask(userId,taskId int) error{
 调用成功：nil
 调用失败：返回error
 	调用失败场景：不存在userId或taskId，或者userId没有接受任务，或者该任务已经完成
-*/
+
 func FinishTask(userId,taskId int) error{
 	
 }
+*/

@@ -35,7 +35,7 @@ type ReleaseRelation struct{
 调用成功：返回这个对象,nil
 调用失败：nil,err对象
 	调用失败场景：查询不到对应的对象
-*/
+
 func GetAcceptRelation(userId,taskId int) (relation *AcceptRelation,err error){
 
 }
@@ -49,7 +49,7 @@ func GetAcceptRelation(userId,taskId int) (relation *AcceptRelation,err error){
 调用成功：返回这个对象的id,nil
 调用失败："",err对象
 	调用失败场景：暂时没有想到
-*/
+
 func CreateAcceptRelation(relation *AcceptRelation) (acId int,err error){
 
 }
@@ -64,7 +64,7 @@ func CreateAcceptRelation(relation *AcceptRelation) (acId int,err error){
 调用成功：返回这个对象,nil
 调用失败：nil,err对象
 	调用失败场景：查询不到对象
-*/
+
 func DeleteAcceptRelation(userId,taskId int) error{
 
 }
@@ -78,7 +78,7 @@ func DeleteAcceptRelation(userId,taskId int) error{
 调用成功：返回这个对象,nil
 调用失败：nil,err对象
 	调用失败场景：查询不到对应的对象
-*/
+
 func GetReleaseRelation(userId,taskId int) (relation *ReleaseRelation,err error){
 
 }
@@ -92,7 +92,7 @@ func GetReleaseRelation(userId,taskId int) (relation *ReleaseRelation,err error)
 调用成功：返回这个对象的id,nil
 调用失败："",err对象
 	调用失败场景：暂时没有想到
-*/
+
 func CreateReleaseRelation(relation *ReleaseRelation) (reId int,err error){
 
 }
@@ -107,7 +107,8 @@ func CreateReleaseRelation(relation *ReleaseRelation) (reId int,err error){
 调用成功：返回这个对象,nil
 调用失败：nil,err对象
 	调用失败场景：查询不到对象
-*/
+
 func DeleteReleaseRelation(userId,taskId int) error{
 
 }
+*/
