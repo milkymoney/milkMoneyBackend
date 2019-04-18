@@ -17,8 +17,8 @@ type User struct {
 	Username		string
 	Password		string
 	Balance			int
-	AcId			int
-	ReId			int
+	AcceptRelation	[]*AcceptRelation	`orm:"reverse(many)"`
+	ReleaseRelation []*ReleaseRelation	`orm:"reverse(many)"`
 }
 
 /*

@@ -29,8 +29,8 @@ type Task struct{
 	State			TaskState	`orm:default(0)`
 	Priority		int32	`orm:default(0)`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
 	MaxAccept		int32 	`orm:default(1)`//任务同时允许的最大接受人数
-	AcId			int
-
+	AcceptRelation	[]*AcceptRelation	`orm:"reverse(many)"`
+	ReleaseRelation []*ReleaseRelation	`orm:"reverse(many)"`
 }
 
 /*

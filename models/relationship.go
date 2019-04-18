@@ -15,15 +15,15 @@ func init(){
 type AcceptRelation struct {
 	Id			int
 	AcceptDate	string
-	UserId		int
-	TaskId		int
+	User		*User	`orm:"rel(fk)"`
+	Task		*Task	`orm:"rel(fk)"`
 }
 
 type ReleaseRelation struct{
 	Id			int
 	ReleaseDate	string
-	UserId		int
-	TaskId		int
+	User		*User	`orm:"rel(fk)"`
+	Task		*Task	`orm:"rel(fk)"`
 }
 
 /*
