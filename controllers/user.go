@@ -3,7 +3,7 @@ package controllers
 import (
 	"apiproject/models"
 	"encoding/json"
-
+	"strconv"
 	"github.com/astaxie/beego"
 )
 
@@ -21,9 +21,14 @@ type UserController struct {
 func (u *UserController) Post() {
 	var user models.User
 	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-	uid,_ := models.AddUser(user)
-	str1 := strconv.Itoa(uid) 
-	u.Data["json"] = map[string]string{"uid": str1}
+	uid,err := models.AddUser(user)
+	if err == nil{
+		userId := strconv.Itoa(uid)
+		u.Data["json"] = map[string]string{"uid": userId}
+	} else{
+		u.Data["json"] = err.Error()
+	}
+	
 	u.ServeJSON()
 }
 
@@ -36,12 +41,18 @@ func (u *UserController) Post() {
 func (u *UserController) Get() {
 	uid := u.GetString(":uid")
 	if uid != "" {
-		user, err := models.GetUser(uid)
-		if err != nil {
+		userId,err := strconv.Atoi(uid)
+		if err == nil{
+			user, err := models.GetUser(userId)
+			if err != nil {
+				u.Data["json"] = err.Error()
+			} else {
+				u.Data["json"] = user
+			}
+		} else{
 			u.Data["json"] = err.Error()
-		} else {
-			u.Data["json"] = user
 		}
+
 	}
 	u.ServeJSON()
 }
@@ -58,12 +69,18 @@ func (u *UserController) Put() {
 	if uid != "" {
 		var user models.User
 		json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-		uu, err := models.UpdateUser(uid, &user)
-		if err != nil {
+		userId,err := strconv.Atoi(uid)
+		if err == nil{
+			uu, err := models.UpdateUser(userId, &user)
+			if err != nil {
+				u.Data["json"] = err.Error()
+			} else {
+				u.Data["json"] = uu
+			}
+		} else{
 			u.Data["json"] = err.Error()
-		} else {
-			u.Data["json"] = uu
 		}
+
 	}
 	u.ServeJSON()
 }
@@ -76,7 +93,13 @@ func (u *UserController) Put() {
 // @router /:uid [delete]
 func (u *UserController) Delete() {
 	uid := u.GetString(":uid")
-	models.DeleteUser(uid)
-	u.Data["json"] = "delete success!"
+	userId,err := strconv.Atoi(uid)
+	if err ==nil{
+		models.DeleteUser(userId)
+		u.Data["json"] = "delete success!"
+	} else{
+		u.Data["json"] = err.Error()
+	}
+
 	u.ServeJSON()
 }

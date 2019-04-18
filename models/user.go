@@ -74,6 +74,7 @@ func GetUser(userId int) (u *User, err error) {
 	可能场景：不存在对应的用户
 */
 func UpdateUser(userId int, uu *User) (user *User, err error) {
+	o := orm.NewOrm()
 	user,err = GetUser(userId)
 	if err != nil{
 		return nil,err
@@ -81,7 +82,7 @@ func UpdateUser(userId int, uu *User) (user *User, err error) {
 	user.Username = uu.Username
 	user.Password = uu.Password
 	user.Balance = uu.Balance
-	num,err := o.Update(user)
+	_,err = o.Update(user)
 	if err == nil{
 		return
 	} else{
@@ -102,7 +103,7 @@ func UpdateUser(userId int, uu *User) (user *User, err error) {
 */
 func DeleteUser(userId int) error {
 	o := orm.NewOrm()
-	if num,err := o.Delete(&User{Id:userId}); err == nil{
+	if _,err := o.Delete(&User{Id:userId}); err == nil{
 		return nil
 	} else{
 		return err
