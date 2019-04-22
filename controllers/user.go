@@ -21,7 +21,7 @@ type UserController struct {
 func (u *UserController) Post() {
 	var user models.User
 	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-	uid,err := models.AddUser(user)
+	uid,err := models.AddUser(&user)
 	if err == nil{
 		userId := strconv.Itoa(uid)
 		u.Data["json"] = map[string]string{"uid": userId}
@@ -32,7 +32,7 @@ func (u *UserController) Post() {
 	u.ServeJSON()
 }
 
-// @Title Get
+// @Title GetUser
 // @Description get user by uid
 // @Param	uid		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.User
@@ -57,7 +57,7 @@ func (u *UserController) Get() {
 	u.ServeJSON()
 }
 
-// @Title Update
+// @Title UpdateUser
 // @Description update the user
 // @Param	uid		path 	string	true		"The uid you want to update"
 // @Param	body		body 	models.User	true		"body for user content"
@@ -85,7 +85,7 @@ func (u *UserController) Put() {
 	u.ServeJSON()
 }
 
-// @Title Delete
+// @Title DeleteUser
 // @Description delete the user
 // @Param	uid		path 	string	true		"The uid you want to delete"
 // @Success 200 {string} delete success!

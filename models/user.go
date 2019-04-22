@@ -28,9 +28,9 @@ type User struct {
 调用失败：返回-1与err
 	可能场景：重复的userId（如果不是用户指定的，则不会有这种情况）
 */
-func AddUser(user User) (userId int,err error) {
+func AddUser(user *User) (userId int,err error) {
 	o := orm.NewOrm()
-	id64,err := o.Insert(&user)
+	id64,err := o.Insert(user)
 	userId = int(id64)
 	if err == nil{
 		return userId,nil

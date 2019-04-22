@@ -7,6 +7,42 @@ import (
 
 func init() {
 
+    beego.GlobalControllerRouter["apiproject/controllers:TaskController"] = append(beego.GlobalControllerRouter["apiproject/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Post",
+            Router: `/`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["apiproject/controllers:TaskController"] = append(beego.GlobalControllerRouter["apiproject/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Get",
+            Router: `/:taskid`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["apiproject/controllers:TaskController"] = append(beego.GlobalControllerRouter["apiproject/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Put",
+            Router: `/:taskid`,
+            AllowHTTPMethods: []string{"put"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["apiproject/controllers:TaskController"] = append(beego.GlobalControllerRouter["apiproject/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Delete",
+            Router: `/:taskid`,
+            AllowHTTPMethods: []string{"delete"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["apiproject/controllers:UserController"] = append(beego.GlobalControllerRouter["apiproject/controllers:UserController"],
         beego.ControllerComments{
             Method: "Post",

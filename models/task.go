@@ -1,5 +1,8 @@
 package models
 
+import (
+	"github.com/astaxie/beego/orm"
+)
 
 func init(){
 
@@ -17,14 +20,14 @@ const(
 //注：原则上，所有的输入数据合法性检查由controller处进行。在models进行的是与模型之间数据关系有关的检查，比如任务的最多接纳人数是否达到上界，等。
 type Task struct{
 	Id				int
-	Type			string//原则上是不接受空格的，表示任务属于某个类型，类型之间互斥
+	Type			string		//原则上是不接受空格的，表示任务属于某个类型，类型之间互斥
 	Description		string
 	Reward			float32
 	Deadline 		string
-	Label			string//原则上不接受label带空格，label与label之间使用空格分隔，标签之间不互斥
-	State			TaskState	`orm:default(0)`
-	Priority		int32	`orm:default(0)`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
-	MaxAccept		int32 	`orm:default(1)`//任务同时允许的最大接受人数
+	Label			string		//原则上不接受label带空格，label与label之间使用空格分隔，标签之间不互斥
+	State			TaskState			`orm:"default(0)"`
+	Priority		int32				`orm:"default(0)"`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
+	MaxAccept		int32 				`orm:"default(1)"`//任务同时允许的最大接受人数
 	AcceptRelation	[]*AcceptRelation	`orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`orm:"reverse(many)"`
 }
@@ -38,11 +41,17 @@ type Task struct{
 调用成功：直接返回taskId与nil
 调用失败：返回-1与err
 	可能场景：重复的taskId（如果不是用户指定的，则不会有这种情况）
-
-func CreateTask(task *Task) (taskId int,err error){
-
+*/
+func AddTask(task *Task) (taskId int,err error){
+	o := orm.NewOrm()
+	id64,err := o.Insert(task)
+	taskId = int(id64)
+	if err == nil{
+		return taskId,nil
+	} else{
+		return -1,err
+	}
 }
-
 /*
 函数目的：获取任务
 调用时机：任何需要通过taskId获取任务的场景
@@ -52,10 +61,18 @@ func CreateTask(task *Task) (taskId int,err error){
 调用成功：直接返回task指针与nil
 调用失败：返回nil与错误对象
 	可能场景：不存在taskId，或是taskId对应的任务状态为已删除
-
+*/
 
 func GetTask(taskId int) (task *Task,err error){
-
+	o := orm.NewOrm()
+	task = &Task{Id:taskId}
+	err = o.Read(task)
+	if err == nil{
+		return
+	}else{
+		task = nil
+		return
+	}
 }
 
 /*
@@ -67,12 +84,32 @@ func GetTask(taskId int) (task *Task,err error){
 调用成功：直接返回修改过的任务对象与nil
 调用失败：返回nil与错误对象
 	可能场景：不存在taskId，或是taskId对应的任务状态为已删除
-
+*/
 
 func UpdateTask(taskId int,tt *Task) (task *Task,err error){
-
+	o := orm.NewOrm()
+	task,err = GetTask(taskId)
+	if err != nil{
+		return nil,err
+	}
+	task.Type = tt.Type
+	task.Description = tt.Description 
+	task.Reward = tt.Reward
+	task.Deadline = tt.Deadline
+	task.Label = tt.Label
+	task.State = tt.State
+	task.Priority =  tt.Priority
+	task.MaxAccept = tt.MaxAccept
+	task.AcceptRelation = tt.AcceptRelation
+	task.ReleaseRelation = tt.ReleaseRelation
+	_,err = o.Update(task)
+	if err == nil{
+		return
+	} else{
+		task = nil
+		return
+	}
 }
-
 /*
 函数目的：删除任务
 调用时机：需要根据taskId删除任务的场景
@@ -82,9 +119,14 @@ func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 调用成功：返回nil
 调用失败：返回err
 	调用失败场景：不存在taskId，或是taskId对应的任务状态为已删除
-
-func DeleteTask(taskId int){
-
+*/
+func DeleteTask(taskId int) error{
+	o := orm.NewOrm()
+	if _,err := o.Delete(&Task{Id:taskId}); err == nil{
+		return nil
+	} else{
+		return err
+	}
 }
 
 //下面为功能性函数区域
