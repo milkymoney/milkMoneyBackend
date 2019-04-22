@@ -1,7 +1,8 @@
 package models
 
 import(
-
+	"github.com/astaxie/beego/orm"
+	"fmt"
 )
 
 func init(){
@@ -26,18 +27,25 @@ type ReleaseRelation struct{
 	Task		*Task	`orm:"rel(fk)"`
 }
 
-/*
-函数目的：拿到AcceptRelation
-调用时机：需要使用userId和taskId拿到relation
-需要执行的任务：
-	1.从数据库中查询并返回对象
+/*业务函数群*/
 
-调用成功：返回这个对象,nil
-调用失败：nil,err对象
-	调用失败场景：查询不到对应的对象
-
-func GetAcceptRelation(userId,taskId int) (relation *AcceptRelation,err error){
-
+//根据用户id和任务id创建新的AcceptRelation，并加入到数据库之中
+func CreateNewAcRelById(userId,taskId int,acceptDate string) (*AcceptRelation,error){
+	user,err := GetUserById(userId)
+	if err != nil{
+		return nil,err
+	}
+	task,err := GetTaskById(taskId)
+	if err != nil{
+		return nil,err
+	}
+	newRelation := &AcceptRelation{AcceptDate:acceptDate,User:user,Task:task}
+	acId,err := CreateAcceptRelation(newRelation)
+	if err != nil{
+		return nil,err
+	}
+	newRelation.Id = acId
+	return newRelation,nil
 }
 
 /*
@@ -49,10 +57,41 @@ func GetAcceptRelation(userId,taskId int) (relation *AcceptRelation,err error){
 调用成功：返回这个对象的id,nil
 调用失败："",err对象
 	调用失败场景：暂时没有想到
+*/
 
 func CreateAcceptRelation(relation *AcceptRelation) (acId int,err error){
+	o := orm.NewOrm()
+	id64,err := o.Insert(relation)
+	id := int(id64)
+	if err != nil{
+		return 0,err
+	}
+	return id,nil
+}
+
+/*
+函数目的：拿到AcceptRelation
+调用时机：需要使用userId和taskId拿到relation
+需要执行的任务：
+	1.从数据库中查询并返回对象
+
+调用成功：返回这个对象,nil
+调用失败：nil,err对象
+	调用失败场景：查询不到对应的对象
+*/
+func GetAcceptRelation(userId,taskId int) (relation []*AcceptRelation,err error){
+	var relations []*AcceptRelation
+	o := orm.NewOrm()
+
+	if _,err := o.QueryTable("accept_relation").Filter("user_id",userId).Filter("task_id",taskId).All(&relations); err != nil{
+		return nil,fmt.Errorf("User id or task id not correct.")
+	} else{
+		return relations,nil
+	}
 
 }
+
+
 
 /*
 函数目的：删除AcceptRelation

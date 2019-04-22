@@ -12,5 +12,12 @@ func init() {
 	orm.RegisterDataBase("default", "mysql", "wty:97112500@tcp(127.0.0.1:3306)/test?charset=utf8")
 	orm.RegisterModel(new(User),new(Task),new(AcceptRelation),new(ReleaseRelation))
 	orm.RunSyncdb("default", false, true)
+	test()
+}
+
+func test(){
+	acRelation,err := CreateNewAcRelById(1,4,"2017-08-08")
+	fmt.Println(acRelation)
+	fmt.Println(err)
 }
 

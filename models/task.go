@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/astaxie/beego/orm"
+	"fmt"
 )
 
 func init(){
@@ -31,6 +32,27 @@ type Task struct{
 	AcceptRelation	[]*AcceptRelation	`orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`orm:"reverse(many)"`
 }
+
+/*
+功能函数群
+*/
+
+//通过任务id获得任务指针
+func GetTaskById(taskId int) (*Task,error){
+	var tasks []*Task
+	o := orm.NewOrm()
+	
+	if num,err := o.QueryTable("task").Filter("id",taskId).All(&tasks); err != nil || num == 0{
+		return nil,fmt.Errorf("task id not found")
+	} else if num>1 {
+		return nil,fmt.Errorf("task id duplicate")
+	}else{
+		return tasks[0],nil
+	}
+}
+/*
+业务函数群
+*/
 
 /*
 函数目的：创建任务

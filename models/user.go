@@ -19,6 +19,41 @@ type User struct {
 }
 
 /*
+功能函数群
+*/
+
+//通过用户名得到用户
+func GetUserByName(userName string) (*User,error){
+	var users []*User
+	o := orm.NewOrm()
+	
+	if num,err := o.QueryTable("user").Filter("username",userName).All(&users); err != nil || num == 0{
+		return nil,fmt.Errorf("UserName not exist")
+	} else if num>1 {
+		return nil,fmt.Errorf("UserName duplicate")
+	}else{
+		return users[0],nil
+	}
+}
+
+//通过用户Id得到用户指针
+func GetUserById(userId int) (*User,error){
+	var users []*User
+	o := orm.NewOrm()
+	
+	if num,err := o.QueryTable("user").Filter("id",userId).All(&users); err != nil || num == 0{
+		return nil,fmt.Errorf("user id not found")
+	} else if num>1 {
+		return nil,fmt.Errorf("user id duplicate")
+	}else{
+		return users[0],nil
+	}
+}
+/*
+业务函数群
+*/
+
+/*
 函数目的：创建用户
 调用时机：添加用户的时候
 需要执行的任务：
