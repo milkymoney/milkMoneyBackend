@@ -12,6 +12,5 @@ func init() {
 	orm.RegisterDataBase("default", "mysql", "wty:97112500@tcp(127.0.0.1:3306)/test?charset=utf8")
 	orm.RegisterModel(new(User),new(Task),new(AcceptRelation),new(ReleaseRelation))
 	orm.RunSyncdb("default", false, true)
-	fmt.Println("Connect over")
 }
 

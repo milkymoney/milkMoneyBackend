@@ -103,3 +103,30 @@ func (u *UserController) Delete() {
 
 	u.ServeJSON()
 }
+
+// @Title Login
+// @Description Logs user into the system
+// @Param	username		query 	string	true		"The username for login"
+// @Param	password		query 	string	true		"The password for login"
+// @Success 200 {string} login success
+// @Failure 403 user not exist
+// @router /login [get]
+func (u *UserController) Login() {
+	username := u.GetString("username")
+	password := u.GetString("password")
+	if flag,err := models.Login(username, password);flag {
+		u.Data["json"] = "login success"
+	} else {
+		u.Data["json"] = err.Error()
+	}
+	u.ServeJSON()
+}
+
+// @Title logout
+// @Description Logs out current logged in user session
+// @Success 200 {string} logout success
+// @router /logout [get]
+func (u *UserController) Logout() {
+	u.Data["json"] = "logout success"
+	u.ServeJSON()
+}

@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/astaxie/beego/orm"
+	"fmt"
 )
 
 func init() {
@@ -108,4 +109,30 @@ func DeleteUser(userId int) error {
 	} else{
 		return err
 	}
+}
+
+/*
+函数目的：用户登陆
+调用时机：controller需要适用用户名和密码来进行登陆
+需要执行的任务：
+	1.从数据库拿所有用户的密码
+	2.检查指定的用户名和密码是否存在
+
+调用成功：返回true与nil
+调用失败：返回false与err
+*/
+func Login(username, password string) (bool,error) {
+	var users []*User
+	o := orm.NewOrm()
+	
+	if num,err := o.QueryTable("user").Filter("username",username).All(&users); err != nil || num == 0{
+		return false,fmt.Errorf("User not exist")
+	} else{
+		for i:=int64(0); i < num;i++{
+			if users[i].Password == password{
+				return true,nil
+			}
+		}
+	}
+	return false,fmt.Errorf("Password not correct")
 }
