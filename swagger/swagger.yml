@@ -11,6 +11,83 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 basePath: /v1
 paths:
+  /task/:
+    post:
+      tags:
+      - task
+      description: create tasks
+      operationId: TaskController.CreateTask
+      parameters:
+      - in: body
+        name: body
+        description: body for task content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Task'
+      responses:
+        "200":
+          description: '{int} models.Task.Id'
+        "403":
+          description: body is empty
+  /task/{taskid}:
+    get:
+      tags:
+      - task
+      description: get task by taskId
+      operationId: TaskController.GetTask
+      parameters:
+      - in: path
+        name: taskid
+        description: the key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Task'
+        "403":
+          description: :taskid is empty
+    put:
+      tags:
+      - task
+      description: update the task
+      operationId: TaskController.UpdateTask
+      parameters:
+      - in: path
+        name: taskid
+        description: The taskId you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for task content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Task'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Task'
+        "403":
+          description: :taskid is not int
+    delete:
+      tags:
+      - task
+      description: delete the task
+      operationId: TaskController.DeleteTask
+      parameters:
+      - in: path
+        name: taskid
+        description: The taskid you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: taskid is empty
   /user/:
     post:
       tags:
@@ -34,7 +111,7 @@ paths:
       tags:
       - user
       description: get user by uid
-      operationId: UserController.Get
+      operationId: UserController.GetUser
       parameters:
       - in: path
         name: uid
@@ -52,7 +129,7 @@ paths:
       tags:
       - user
       description: update the user
-      operationId: UserController.Update
+      operationId: UserController.UpdateUser
       parameters:
       - in: path
         name: uid
@@ -76,7 +153,7 @@ paths:
       tags:
       - user
       description: delete the user
-      operationId: UserController.Delete
+      operationId: UserController.DeleteUser
       parameters:
       - in: path
         name: uid
@@ -88,18 +165,128 @@ paths:
           description: '{string} delete success!'
         "403":
           description: uid is empty
+  /user/login:
+    get:
+      tags:
+      - user
+      description: Logs user into the system
+      operationId: UserController.Login
+      parameters:
+      - in: query
+        name: username
+        description: The username for login
+        required: true
+        type: string
+      - in: query
+        name: password
+        description: The password for login
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} login success'
+        "403":
+          description: user not exist
+  /user/logout:
+    get:
+      tags:
+      - user
+      description: Logs out current logged in user session
+      operationId: UserController.logout
+      responses:
+        "200":
+          description: '{string} logout success'
 definitions:
+  models.AcceptRelation:
+    title: AcceptRelation
+    type: object
+    properties:
+      AcceptDate:
+        type: string
+      Id:
+        type: integer
+        format: int64
+      Task:
+        $ref: '#/definitions/models.Task'
+      User:
+        $ref: '#/definitions/models.User'
+  models.ReleaseRelation:
+    title: ReleaseRelation
+    type: object
+    properties:
+      Id:
+        type: integer
+        format: int64
+      ReleaseDate:
+        type: string
+      Task:
+        $ref: '#/definitions/models.Task'
+      User:
+        $ref: '#/definitions/models.User'
+  models.Task:
+    title: Task
+    type: object
+    properties:
+      AcceptRelation:
+        type: array
+        items:
+          $ref: '#/definitions/models.AcceptRelation'
+      Deadline:
+        type: string
+      Description:
+        type: string
+      Id:
+        type: integer
+        format: int64
+      Label:
+        type: string
+      MaxAccept:
+        type: integer
+        format: int32
+      Priority:
+        type: integer
+        format: int32
+      ReleaseRelation:
+        type: array
+        items:
+          $ref: '#/definitions/models.ReleaseRelation'
+      Reward:
+        type: number
+        format: float
+      State:
+        $ref: '#/definitions/models.TaskState'
+      Type:
+        type: string
+  models.TaskState:
+    title: TaskState
+    format: int32
+    type: integer
+    enum:
+    - Task_Open = 0
+    - Task_Close = 1
+    - Task_Done = 2
+    - Task_Delete = 3
+    example: 0
   models.User:
     title: User
     type: object
     properties:
+      AcceptRelation:
+        type: array
+        items:
+          $ref: '#/definitions/models.AcceptRelation'
       Balance:
         type: integer
         format: int64
       Id:
-        type: string
+        type: integer
+        format: int64
       Password:
         type: string
+      ReleaseRelation:
+        type: array
+        items:
+          $ref: '#/definitions/models.ReleaseRelation'
       Username:
         type: string
 tags:
