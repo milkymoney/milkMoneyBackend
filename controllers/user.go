@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"apiproject/models"
+	"github.com/milkymoney/milkMoneyBackend/models"
 	"encoding/json"
 	"strconv"
 	"github.com/astaxie/beego"

@@ -8,7 +8,7 @@
 package routers
 
 import (
-	"apiproject/controllers"
+	"github.com/milkymoney/milkMoneyBackend/controllers"
 
 	"github.com/astaxie/beego"
 )
