@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "apiproject/routers"
+	_ "github.com/milkymoney/milkMoneyBackend/routers"
 	"github.com/astaxie/beego"
 )
 

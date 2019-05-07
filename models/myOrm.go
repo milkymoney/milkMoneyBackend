@@ -9,7 +9,7 @@ import(
 func init() {
 	fmt.Println("Begin to connect to sql")
     orm.RegisterDriver("mysql", orm.DRMySQL)
-	orm.RegisterDataBase("default", "mysql", "root:wu97112500@tcp129.204.7.185:30000:30000)/demo?charset=utf8")
+	orm.RegisterDataBase("default", "mysql", "root:wu97112500@tcp(129.204.7.185:30000:30000)/demo?charset=utf8")
 	orm.RegisterModel(new(User),new(Task),new(AcceptRelation),new(ReleaseRelation))
 	orm.RunSyncdb("default", false, true)
 	test()
