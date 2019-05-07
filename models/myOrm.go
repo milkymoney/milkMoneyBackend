@@ -16,8 +16,7 @@ func init() {
 }
 
 func test(){
-	acRelation,err := CreateNewAcRelById(1,4,"2017-08-08")
-	fmt.Println(acRelation)
-	fmt.Println(err)
+	user,_ := GetUserByName("wty")
+	fmt.Println(user)
 }
 
