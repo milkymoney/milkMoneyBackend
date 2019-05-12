@@ -12,8 +12,8 @@ func init() {
 type User struct {
 	Id      		int
 	Username		string
-	Password		string
-	Balance			int
+	OpenId			string
+	Balance			int					`orm:"default(0)"`
 	AcceptRelation	[]*AcceptRelation	`orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`orm:"reverse(many)"`
 }
@@ -49,6 +49,21 @@ func GetUserById(userId int) (*User,error){
 		return users[0],nil
 	}
 }
+
+//检索数据库中是否出现过相同的openId
+func GetUserByOpenId(openId string) (*User,error){
+	var users []*User
+	o := orm.NewOrm()
+	
+	if num,err := o.QueryTable("user").Filter("open_id",openId).All(&users); err != nil || num == 0{
+		return nil,fmt.Errorf("user id not found")
+	} else if num>1 {
+		return nil,fmt.Errorf("user id duplicate")
+	}else{
+		return users[0],nil
+	}
+}
+
 /*
 业务函数群
 */
@@ -116,7 +131,6 @@ func UpdateUser(userId int, uu *User) (user *User, err error) {
 		return nil,err
 	}
 	user.Username = uu.Username
-	user.Password = uu.Password
 	user.Balance = uu.Balance
 	_,err = o.Update(user)
 	if err == nil{
@@ -148,26 +162,21 @@ func DeleteUser(userId int) error {
 
 /*
 函数目的：用户登陆
-调用时机：controller需要适用用户名和密码来进行登陆
+调用时机：controller需要登陆
 需要执行的任务：
-	1.从数据库拿所有用户的密码
-	2.检查指定的用户名和密码是否存在
+	1.拿到code
+	2.向微信服务器请求，拿到openid
+	3.返回openID
 
-调用成功：返回true与nil
-调用失败：返回false与err
+调用成功：返回openId与nil
+调用失败：返回空值与err
 */
-func Login(username, password string) (bool,error) {
-	var users []*User
-	o := orm.NewOrm()
-	
-	if num,err := o.QueryTable("user").Filter("username",username).All(&users); err != nil || num == 0{
-		return false,fmt.Errorf("User not exist")
-	} else{
-		for i:=int64(0); i < num;i++{
-			if users[i].Password == password{
-				return true,nil
-			}
-		}
+func Login(code string) (string,error) {
+	openId := code
+	//检查openId是否第一次出现，如果第一次出现，则进行写入操作
+	_,err := GetUserByOpenId(openId)
+	if err.Error() == "user id not found"{
+		AddUser(&User{OpenId:openId})
 	}
-	return false,fmt.Errorf("Password not correct")
+	return openId,nil
 }

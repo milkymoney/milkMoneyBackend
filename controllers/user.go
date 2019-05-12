@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"github.com/astaxie/beego"
+	"fmt"
 )
 
 // Operations about Users
@@ -106,16 +107,18 @@ func (u *UserController) Delete() {
 
 // @Title Login
 // @Description Logs user into the system
-// @Param	username		query 	string	true		"The username for login"
-// @Param	password		query 	string	true		"The password for login"
+// @Param	code		query 	string	true		"the code from wx.login()"
 // @Success 200 {string} login success
 // @Failure 403 user not exist
 // @router /login [get]
 func (u *UserController) Login() {
-	username := u.GetString("username")
-	password := u.GetString("password")
-	if flag,err := models.Login(username, password);flag {
-		u.Data["json"] = "login success"
+	fmt.Println(u.Ctx.Input.CruSession)
+	session := u.Ctx.Input.CruSession
+	code := u.GetString("code")
+	if openid,err := models.Login(code);err==nil {
+		//设置session
+		u.Data["json"] = openid
+		session.Set("openid",openid)
 	} else {
 		u.Data["json"] = err.Error()
 	}
@@ -128,5 +131,29 @@ func (u *UserController) Login() {
 // @router /logout [get]
 func (u *UserController) Logout() {
 	u.Data["json"] = "logout success"
+	u.ServeJSON()
+}
+
+// @Title login
+// @Description Use session to get user's id
+// @Param	code	query 	string	true		"wx.Login response code"
+// @Success 200 {string} login success
+// @Failure 403 user not exist
+// @router /query [get]
+func (u *UserController) Query() {
+	fmt.Println("In Query")
+	session := u.Ctx.Input.CruSession
+	fmt.Println(session)
+	if val := session.Get("openid"); val != nil {
+		user,err := models.GetUserByOpenId(val.(string))
+		fmt.Println(user)
+		if err !=nil{
+			u.Data["json"] = "openid error"
+		} else{
+			u.Data["json"] = user.Id
+		}
+	} else {
+		u.Data["json"] ="need login"
+	}
 	u.ServeJSON()
 }
