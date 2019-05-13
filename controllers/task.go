@@ -171,3 +171,30 @@ func (t *TaskController) AcceptTask(){
 	}
 	t.ServeJSON()
 }
+
+// @Title SettleUpTask
+// @Description user finish the task
+// @Param	taskid		path 	string	true		"The taskid you want to accept"
+// @Success 200 {string} finish task success!
+// @Failure 403 taskid is empty
+// @router /settleup/:taskid [put]
+func (t *TaskController) FinishTask(){
+	user,err := Auth(&t.Controller)
+	if err != nil{
+		t.Data["json"] = err.Error()
+	} else{
+		tid := t.GetString(":taskid")
+		taskId,err := strconv.Atoi(tid)
+		if err != nil{
+			t.Data["json"] = err.Error()
+		}else{
+			_,err = models.CreateNewReRelById(user.Id,taskId,"20190513")
+			if err == nil{
+				t.Data["json"] = "finish task success!"
+			} else{
+				t.Data["json"] = err.Error()
+			}
+		}
+	}
+	t.ServeJSON()
+}

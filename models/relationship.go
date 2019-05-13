@@ -48,6 +48,24 @@ func CreateNewAcRelById(userId,taskId int,acceptDate string) (*AcceptRelation,er
 	return newRelation,nil
 }
 
+func CreateNewReRelById(userId,taskId int,releaseDate string) (*ReleaseRelation,error){
+	user,err := GetUserById(userId)
+	if err != nil{
+		return nil,err
+	}
+	task,err := GetTaskById(taskId)
+	if err != nil{
+		return nil,err
+	}
+	newRelation := &ReleaseRelation{ReleaseDate:releaseDate,User:user,Task:task}
+	reId,err := CreateReleaseRelation(newRelation)
+	if err != nil{
+		return nil,err
+	}
+	newRelation.Id = reId
+	return newRelation,nil
+}
+
 /*
 函数目的：创建AcceptRelation
 调用时机：需要将relation加入到数据库中
@@ -131,9 +149,15 @@ func GetReleaseRelation(userId,taskId int) (relation *ReleaseRelation,err error)
 调用成功：返回这个对象的id,nil
 调用失败："",err对象
 	调用失败场景：暂时没有想到
-
-func CreateReleaseRelation(relation *ReleaseRelation) (reId int,err error){
-
+*/
+func CreateReleaseRelation(relation *ReleaseRelation) (int,error){
+	o := orm.NewOrm()
+	id64,err := o.Insert(relation)
+	id := int(id64)
+	if err != nil{
+		return 0,err
+	}
+	return id,nil
 }
 
 /*
