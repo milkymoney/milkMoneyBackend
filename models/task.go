@@ -20,19 +20,19 @@ const(
 
 //注：原则上，所有的输入数据合法性检查由controller处进行。在models进行的是与模型之间数据关系有关的检查，比如任务的最多接纳人数是否达到上界，等。
 type Task struct{
-	Id				int
-	Userid			int
-	Type			string		//原则上是不接受空格的，表示任务属于某个类型，类型之间互斥
-	Description		string
-	Reward			float32
-	Deadline 		string
-	Label			string		//原则上不接受label带空格，label与label之间使用空格分隔，标签之间不互斥
-	State			TaskState			`orm:"default(0)"`
-	Priority		int32				`orm:"default(0)"`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
-	MaxAccept		int32 				`orm:"default(1)"`//任务同时允许的最大接受人数
-	HasAccept		int32				`orm:"default(0)"`
-	AcceptRelation	[]*AcceptRelation	`orm:"reverse(many)"`
-	ReleaseRelation []*ReleaseRelation	`orm:"reverse(many)"`
+	Id				int			`json:"tid"`
+	Userid			int			`json:"userid"`
+	Type			string		`json:"type"`//原则上是不接受空格的，表示任务属于某个类型，类型之间互斥
+	Description		string		`json:"description"`
+	Reward			float32		`json:"reward"`
+	Deadline 		string		`json:"deadline"`
+	Label			string		`json:"label"`//原则上不接受label带空格，label与label之间使用空格分隔，标签之间不互斥
+	State			TaskState			`json:"state" orm:"default(0)"`
+	Priority		int32				`json:"priority" orm:"default(0)"`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
+	MaxAccept		int32 				`json:"maxAccept" orm:"default(1)"`//任务同时允许的最大接受人数
+	HasAccept		int32				`json:"hasAccept" orm:"default(0)"`
+	AcceptRelation	[]*AcceptRelation	`json:"acceptRelation" orm:"reverse(many)"`
+	ReleaseRelation []*ReleaseRelation	`json:"releaseRelation" orm:"reverse(many)"`
 }
 
 /*

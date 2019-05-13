@@ -39,6 +39,32 @@
                         "description": ":taskid is empty"
                     }
                 }
+            },
+            "post": {
+                "tags": [
+                    "task"
+                ],
+                "description": "specific user create tasks",
+                "operationId": "TaskController.CreateTask",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for task content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Task"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{map[string]string}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
             }
         },
         "/task/accept/{taskid}": {
@@ -60,6 +86,32 @@
                 "responses": {
                     "200": {
                         "description": "{string} accept success!"
+                    },
+                    "403": {
+                        "description": "taskid is empty"
+                    }
+                }
+            }
+        },
+        "/task/settleup/{taskid}": {
+            "put": {
+                "tags": [
+                    "task"
+                ],
+                "description": "user finish the task",
+                "operationId": "TaskController.SettleUpTask",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "taskid",
+                        "description": "The taskid you want to accept",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} finish task success!"
                     },
                     "403": {
                         "description": "taskid is empty"
@@ -383,54 +435,54 @@
             "title": "Task",
             "type": "object",
             "properties": {
-                "AcceptRelation": {
+                "acceptRelation": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.AcceptRelation"
                     }
                 },
-                "Deadline": {
+                "deadline": {
                     "type": "string"
                 },
-                "Description": {
+                "description": {
                     "type": "string"
                 },
-                "HasAccept": {
+                "hasAccept": {
                     "type": "integer",
                     "format": "int32"
                 },
-                "Id": {
-                    "type": "integer",
-                    "format": "int64"
-                },
-                "Label": {
+                "label": {
                     "type": "string"
                 },
-                "MaxAccept": {
+                "maxAccept": {
                     "type": "integer",
                     "format": "int32"
                 },
-                "Priority": {
+                "priority": {
                     "type": "integer",
                     "format": "int32"
                 },
-                "ReleaseRelation": {
+                "releaseRelation": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ReleaseRelation"
                     }
                 },
-                "Reward": {
+                "reward": {
                     "type": "number",
                     "format": "float"
                 },
-                "State": {
+                "state": {
                     "$ref": "#/definitions/models.TaskState"
                 },
-                "Type": {
+                "tid": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "type": {
                     "type": "string"
                 },
-                "Userid": {
+                "userid": {
                     "type": "integer",
                     "format": "int64"
                 }
@@ -458,24 +510,24 @@
                         "$ref": "#/definitions/models.AcceptRelation"
                     }
                 },
-                "Balance": {
-                    "type": "integer",
-                    "format": "int64"
-                },
-                "Id": {
-                    "type": "integer",
-                    "format": "int64"
-                },
-                "OpenId": {
-                    "type": "string"
-                },
                 "ReleaseRelation": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ReleaseRelation"
                     }
                 },
-                "Username": {
+                "balance": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "openid": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

@@ -24,13 +24,22 @@ type TaskController struct {
 }
 */
 
+type HttpResponseCode struct{
+	Message 	string	`json:"message"`
+	Success		bool	`json:"success"`
+}
+
+type CreateTaskReturnCode struct{
+	HttpResponseCode
+	TaskId 		int		`json:"taskId"`
+}
+
 // @Title CreateTask
 // @Description specific user create tasks
 // @Param	body		body 	models.Task	true		"body for task content"
-// @Success 200 {int} models.Task.Id
+// @Success 200 {map[string]string} 
 // @Failure 403 body is empty
 // @router / [post]
-
 func (t *TaskController) Post() {
 	fmt.Println("Create Task")
 	var task models.Task
@@ -43,8 +52,7 @@ func (t *TaskController) Post() {
 		fmt.Println(task)
 		tId,err := models.AddTask(&task)
 		if err == nil{
-			taskId := strconv.Itoa(tId)
-			t.Data["json"] = map[string]string{"taskId": taskId}
+			t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:"success",Success:true},TaskId:tId}
 		} else{
 			t.Data["json"] = err.Error()
 		}

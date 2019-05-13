@@ -10,10 +10,10 @@ func init() {
 }
 
 type User struct {
-	Id      		int
-	Username		string
-	OpenId			string
-	Balance			int					`orm:"default(0)"`
+	Id      		int					`json:"id"`
+	Username		string				`json:"username"`
+	OpenId			string				`json:"openid"`
+	Balance			int					`json:"balance" orm:"default(0)"`
 	AcceptRelation	[]*AcceptRelation	`orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`orm:"reverse(many)"`
 }
