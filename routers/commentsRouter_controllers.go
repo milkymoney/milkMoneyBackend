@@ -9,9 +9,9 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/milkymoney/milkMoneyBackend/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/milkymoney/milkMoneyBackend/controllers:TaskController"],
         beego.ControllerComments{
-            Method: "Post",
+            Method: "GetAllTask",
             Router: `/`,
-            AllowHTTPMethods: []string{"post"},
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -43,6 +43,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/milkymoney/milkMoneyBackend/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/milkymoney/milkMoneyBackend/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "AcceptTask",
+            Router: `/accept/:taskid`,
+            AllowHTTPMethods: []string{"delete"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/milkymoney/milkMoneyBackend/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/milkymoney/milkMoneyBackend/controllers:UserController"],
         beego.ControllerComments{
             Method: "Post",
@@ -55,7 +64,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/milkymoney/milkMoneyBackend/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/milkymoney/milkMoneyBackend/controllers:UserController"],
         beego.ControllerComments{
             Method: "Get",
-            Router: `/:uid`,
+            Router: `/`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,

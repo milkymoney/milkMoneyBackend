@@ -13,6 +13,25 @@ type UserController struct {
 	beego.Controller
 }
 
+/*
+	输入当前的beego控制器
+	根据session返回session中openid对应的用户指针，或者错误
+*/
+func Auth(u *beego.Controller) (*models.User,error){
+	session := u.Ctx.Input.CruSession
+	if val := session.Get("openid"); val != nil {
+		user,err := models.GetUserByOpenId(val.(string))
+		if err != nil{
+			return nil,err
+		}else{
+			return user,nil
+		}
+	} else {
+		return nil,fmt.Errorf("need login")
+	}
+
+}
+//待处理，不需要创建用户了，估计就不要了
 // @Title CreateUser
 // @Description create users
 // @Param	body		body 	models.User	true		"body for user content"
@@ -32,32 +51,23 @@ func (u *UserController) Post() {
 	
 	u.ServeJSON()
 }
-
+//待处理，改了，但是不知道微信登陆用不用的了
 // @Title GetUser
-// @Description get user by uid
-// @Param	uid		path 	string	true		"The key for staticblock"
+// @Description get user by openid(in session)
+// @Param	openid		header 	string	true		"user's id from wx"
 // @Success 200 {object} models.User
 // @Failure 403 :uid is empty
-// @router /:uid [get]
+// @router / [get]
 func (u *UserController) Get() {
-	uid := u.GetString(":uid")
-	if uid != "" {
-		userId,err := strconv.Atoi(uid)
-		if err == nil{
-			user, err := models.GetUser(userId)
-			if err != nil {
-				u.Data["json"] = err.Error()
-			} else {
-				u.Data["json"] = user
-			}
-		} else{
-			u.Data["json"] = err.Error()
-		}
-
+	user,err := Auth(&u.Controller)
+	if err != nil{
+		u.Data["json"] = err.Error()
+	} else{
+		u.Data["json"] = user
 	}
 	u.ServeJSON()
 }
-
+//待处理，可以留着，但是还没改
 // @Title UpdateUser
 // @Description update the user
 // @Param	uid		path 	string	true		"The uid you want to update"
@@ -85,7 +95,7 @@ func (u *UserController) Put() {
 	}
 	u.ServeJSON()
 }
-
+//待处理，估计会不要
 // @Title DeleteUser
 // @Description delete the user
 // @Param	uid		path 	string	true		"The uid you want to delete"
@@ -104,7 +114,7 @@ func (u *UserController) Delete() {
 
 	u.ServeJSON()
 }
-
+//待处理，未与微信同步
 // @Title Login
 // @Description Logs user into the system
 // @Param	code		query 	string	true		"the code from wx.login()"
@@ -115,6 +125,7 @@ func (u *UserController) Login() {
 	fmt.Println(u.Ctx.Input.CruSession)
 	session := u.Ctx.Input.CruSession
 	code := u.GetString("code")
+	fmt.Println("Code" + code)
 	if openid,err := models.Login(code);err==nil {
 		//设置session
 		u.Data["json"] = openid
@@ -122,9 +133,11 @@ func (u *UserController) Login() {
 	} else {
 		u.Data["json"] = err.Error()
 	}
+	fmt.Println("Set session over")
 	u.ServeJSON()
 }
 
+//待处理，可能不要
 // @Title logout
 // @Description Logs out current logged in user session
 // @Success 200 {string} logout success
@@ -134,6 +147,7 @@ func (u *UserController) Logout() {
 	u.ServeJSON()
 }
 
+//测试用函数
 // @Title login
 // @Description Use session to get user's id
 // @Param	code	query 	string	true		"wx.Login response code"

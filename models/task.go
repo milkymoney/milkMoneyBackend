@@ -21,6 +21,7 @@ const(
 //注：原则上，所有的输入数据合法性检查由controller处进行。在models进行的是与模型之间数据关系有关的检查，比如任务的最多接纳人数是否达到上界，等。
 type Task struct{
 	Id				int
+	Userid			int
 	Type			string		//原则上是不接受空格的，表示任务属于某个类型，类型之间互斥
 	Description		string
 	Reward			float32
@@ -29,6 +30,7 @@ type Task struct{
 	State			TaskState			`orm:"default(0)"`
 	Priority		int32				`orm:"default(0)"`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
 	MaxAccept		int32 				`orm:"default(1)"`//任务同时允许的最大接受人数
+	HasAccept		int32				`orm:"default(0)"`
 	AcceptRelation	[]*AcceptRelation	`orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`orm:"reverse(many)"`
 }
@@ -48,6 +50,17 @@ func GetTaskById(taskId int) (*Task,error){
 		return nil,fmt.Errorf("task id duplicate")
 	}else{
 		return tasks[0],nil
+	}
+}
+//根据userId，拿出创建者为同一人的任务
+func GetTaskByUserid(userId int) ([]*Task,error){
+	var tasks []*Task
+	o := orm.NewOrm()
+	
+	if num,err := o.QueryTable("task").Filter("userid",userId).All(&tasks); err != nil || num == 0{
+		return nil,fmt.Errorf("this user don't have any task")
+	} else{
+		return tasks,nil
 	}
 }
 /*

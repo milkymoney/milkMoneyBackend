@@ -175,8 +175,10 @@ func Login(code string) (string,error) {
 	openId := code
 	//检查openId是否第一次出现，如果第一次出现，则进行写入操作
 	_,err := GetUserByOpenId(openId)
-	if err.Error() == "user id not found"{
-		AddUser(&User{OpenId:openId})
+	if err != nil{
+		if err.Error() == "user id not found"{
+			AddUser(&User{OpenId:openId})
+		}
 	}
 	return openId,nil
 }
