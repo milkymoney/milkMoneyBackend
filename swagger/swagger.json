@@ -16,29 +16,53 @@
     "basePath": "/v1",
     "paths": {
         "/task/": {
-            "post": {
+            "get": {
                 "tags": [
                     "task"
                 ],
-                "description": "create tasks",
-                "operationId": "TaskController.CreateTask",
+                "description": "get task by taskId",
+                "operationId": "TaskController.GetAllTask",
                 "parameters": [
                     {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body for task content",
+                        "in": "header",
+                        "name": "openid",
+                        "description": "user's id from wx",
                         "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Task"
-                        }
+                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "{int} models.Task.Id"
+                        "description": "{[object]} models.Task"
                     },
                     "403": {
-                        "description": "body is empty"
+                        "description": ":taskid is empty"
+                    }
+                }
+            }
+        },
+        "/task/accept/{taskid}": {
+            "put": {
+                "tags": [
+                    "task"
+                ],
+                "description": "user accept the task",
+                "operationId": "TaskController.AcceptTask",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "taskid",
+                        "description": "The taskid you want to accept",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} accept success!"
+                    },
+                    "403": {
+                        "description": "taskid is empty"
                     }
                 }
             }
@@ -133,6 +157,33 @@
             }
         },
         "/user/": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "description": "get user by openid(in session)",
+                "operationId": "UserController.GetUser",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "openid",
+                        "description": "user's id from wx",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "403": {
+                        "description": ":uid is empty"
+                    }
+                }
+            },
             "post": {
                 "tags": [
                     "user"
@@ -170,15 +221,8 @@
                 "parameters": [
                     {
                         "in": "query",
-                        "name": "username",
-                        "description": "The username for login",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "password",
-                        "description": "The password for login",
+                        "name": "code",
+                        "description": "the code from wx.login()",
                         "required": true,
                         "type": "string"
                     }
@@ -207,34 +251,33 @@
                 }
             }
         },
-        "/user/{uid}": {
+        "/user/query": {
             "get": {
                 "tags": [
                     "user"
                 ],
-                "description": "get user by uid",
-                "operationId": "UserController.GetUser",
+                "description": "Use session to get user's id",
+                "operationId": "UserController.login",
                 "parameters": [
                     {
-                        "in": "path",
-                        "name": "uid",
-                        "description": "The key for staticblock",
+                        "in": "query",
+                        "name": "code",
+                        "description": "wx.Login response code",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
+                        "description": "{string} login success"
                     },
                     "403": {
-                        "description": ":uid is empty"
+                        "description": "user not exist"
                     }
                 }
-            },
+            }
+        },
+        "/user/{uid}": {
             "put": {
                 "tags": [
                     "user"
@@ -352,6 +395,10 @@
                 "Description": {
                     "type": "string"
                 },
+                "HasAccept": {
+                    "type": "integer",
+                    "format": "int32"
+                },
                 "Id": {
                     "type": "integer",
                     "format": "int64"
@@ -382,6 +429,10 @@
                 },
                 "Type": {
                     "type": "string"
+                },
+                "Userid": {
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },
@@ -415,7 +466,7 @@
                     "type": "integer",
                     "format": "int64"
                 },
-                "Password": {
+                "OpenId": {
                     "type": "string"
                 },
                 "ReleaseRelation": {

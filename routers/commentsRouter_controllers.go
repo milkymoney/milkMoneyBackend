@@ -47,7 +47,7 @@ func init() {
         beego.ControllerComments{
             Method: "AcceptTask",
             Router: `/accept/:taskid`,
-            AllowHTTPMethods: []string{"delete"},
+            AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
