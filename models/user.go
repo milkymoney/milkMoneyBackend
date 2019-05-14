@@ -3,6 +3,10 @@ package models
 import (
 	"github.com/astaxie/beego/orm"
 	"fmt"
+	"github.com/astaxie/beego"
+	"io/ioutil"
+	"net/http"
+	"encoding/json"
 )
 
 func init() {
@@ -160,6 +164,52 @@ func DeleteUser(userId int) error {
 	}
 }
 
+//通过微信API以及code拿到openid
+type Code2sessionResult struct {
+	ErrorCode  int    `json:"errcode"`
+	ErrorMsg   string `json:"errmsg,omitempty"`
+	SessionKey string `json:"session_key,omitempty"`
+	ExpiresIn  int    `json:"expires_in,omitempty"`
+	Openid     string `json:"openid,omitempty"`
+}
+
+func HttpGet(url string) (r []byte, err error) {
+	var result []byte
+	resp, err := http.Get(url)
+	defer resp.Body.Close()
+	if err == nil {
+		body, _ := ioutil.ReadAll(resp.Body)
+		result = body
+		return result, nil
+	}
+	return result, err
+}
+
+
+func getOpenIdThroughCode(code string) (string,error){
+	var APPID = beego.AppConfig.String("APPID")
+	var SECRET = beego.AppConfig.String("SECRET")
+	url := "https://api.weixin.qq.com/sns/jscode2session?appid=" + APPID + "&secret=" + SECRET + "&js_code=" + code + "&grant_type=authorization_code"
+	request, err := HttpGet(url)
+	if err!=nil{
+		return "",err
+	}
+	code2session := Code2sessionResult{}
+
+	fmt.Println(string(request))//output result
+
+	err = json.Unmarshal(request, &code2session)
+	if err != nil {
+		return "",err
+	}
+	if code2session.ErrorCode > 0 {
+		err = fmt.Errorf("%d=>%s", code2session.ErrorCode, code2session.ErrorMsg)
+		return "",err
+	}
+	return code2session.Openid,nil
+}
+
+
 /*
 函数目的：用户登陆
 调用时机：controller需要登陆
@@ -172,9 +222,12 @@ func DeleteUser(userId int) error {
 调用失败：返回空值与err
 */
 func Login(code string) (string,error) {
-	openId := code
+	openId,err := getOpenIdThroughCode(code)
+	if err != nil{
+		return "",err
+	}
 	//检查openId是否第一次出现，如果第一次出现，则进行写入操作
-	_,err := GetUserByOpenId(openId)
+	_,err = GetUserByOpenId(openId)
 	if err != nil{
 		if err.Error() == "user id not found"{
 			AddUser(&User{OpenId:openId})
