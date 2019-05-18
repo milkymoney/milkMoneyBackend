@@ -196,7 +196,8 @@ func getOpenIdThroughCode(code string) (string,error){
 	}
 	code2session := Code2sessionResult{}
 
-	fmt.Println(string(request))//output result
+	fmt.Println("In function getOpenIDThroughCode,get the request")
+	fmt.Println(request)
 
 	err = json.Unmarshal(request, &code2session)
 	if err != nil {

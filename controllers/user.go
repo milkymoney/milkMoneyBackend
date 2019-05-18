@@ -122,6 +122,7 @@ func (u *UserController) Delete() {
 // @Failure 403 user not exist
 // @router /login [get]
 func (u *UserController) Login() {
+	fmt.Println("In controller function login, it's session:")
 	fmt.Println(u.Ctx.Input.CruSession)
 	session := u.Ctx.Input.CruSession
 	code := u.GetString("code")
@@ -157,6 +158,7 @@ func (u *UserController) Logout() {
 func (u *UserController) Query() {
 	fmt.Println("In Query")
 	session := u.Ctx.Input.CruSession
+	fmt.Println("In controller's function query, get the session")
 	fmt.Println(session)
 	if val := session.Get("openid"); val != nil {
 		user,err := models.GetUserByOpenId(val.(string))
