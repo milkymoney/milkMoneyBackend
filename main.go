@@ -7,6 +7,7 @@ import (
 
 
 func main() {
+	beego.SetStaticPath("/image", "image")
 	beego.BConfig.WebConfig.Session.SessionOn = true
 	beego.BConfig.WebConfig.Session.SessionProvider="file"
 	beego.BConfig.WebConfig.Session.SessionProviderConfig = "./tmp"
