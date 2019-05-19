@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/milkymoney/milkMoneyBackend/models"
 	"encoding/json"
-	"strconv"
 	"github.com/astaxie/beego"
 	"fmt"
 )
@@ -31,30 +30,10 @@ func Auth(u *beego.Controller) (*models.User,error){
 	}
 
 }
-//待处理，不需要创建用户了，估计就不要了
-// @Title CreateUser
-// @Description create users
-// @Param	body		body 	models.User	true		"body for user content"
-// @Success 200 {int} models.User.Id
-// @Failure 403 body is empty
-// @router / [post]
-func (u *UserController) Post() {
-	var user models.User
-	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-	uid,err := models.AddUser(&user)
-	if err == nil{
-		userId := strconv.Itoa(uid)
-		u.Data["json"] = map[string]string{"uid": userId}
-	} else{
-		u.Data["json"] = err.Error()
-	}
-	
-	u.ServeJSON()
-}
-//待处理，改了，但是不知道微信登陆用不用的了
-// @Title GetUser
+
+// @Title 查询用户信息
 // @Description get user by openid(in session)
-// @Param	openid		header 	string	true		"user's id from wx"
+// @Param	session		header 	string	true		"user's session ,get from login"
 // @Success 200 {object} models.User
 // @Failure 403 :uid is empty
 // @router / [get]
@@ -67,54 +46,34 @@ func (u *UserController) Get() {
 	}
 	u.ServeJSON()
 }
-//待处理，可以留着，但是还没改
-// @Title UpdateUser
+// @Title 修改用户个人信息
 // @Description update the user
-// @Param	uid		path 	string	true		"The uid you want to update"
+// @Param	session		header 	string	true		"user's session ,get from login"
 // @Param	body		body 	models.User	true		"body for user content"
-// @Success 200 {object} models.User
+// @Success 200 {object} controllers.HttpResponseCode
 // @Failure 403 :uid is not int
 // @router /:uid [put]
 func (u *UserController) Put() {
-	uid := u.GetString(":uid")
-	if uid != "" {
+	originUser,err := Auth(&u.Controller)
+	if err == nil {
 		var user models.User
 		json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-		userId,err := strconv.Atoi(uid)
+		userId := originUser.Id
 		if err == nil{
 			uu, err := models.UpdateUser(userId, &user)
 			if err != nil {
-				u.Data["json"] = err.Error()
+				u.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 			} else {
-				u.Data["json"] = uu
+				u.Data["json"] = HttpResponseCode{Success:true,Message:"update success"}
 			}
 		} else{
-			u.Data["json"] = err.Error()
+			u.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}
 
 	}
 	u.ServeJSON()
 }
-//待处理，估计会不要
-// @Title DeleteUser
-// @Description delete the user
-// @Param	uid		path 	string	true		"The uid you want to delete"
-// @Success 200 {string} delete success!
-// @Failure 403 uid is empty
-// @router /:uid [delete]
-func (u *UserController) Delete() {
-	uid := u.GetString(":uid")
-	userId,err := strconv.Atoi(uid)
-	if err ==nil{
-		models.DeleteUser(userId)
-		u.Data["json"] = "delete success!"
-	} else{
-		u.Data["json"] = err.Error()
-	}
 
-	u.ServeJSON()
-}
-//待处理，未与微信同步
 // @Title Login
 // @Description Logs user into the system
 // @Param	code		query 	string	true		"the code from wx.login()"
@@ -138,15 +97,6 @@ func (u *UserController) Login() {
 	u.ServeJSON()
 }
 
-//待处理，可能不要
-// @Title logout
-// @Description Logs out current logged in user session
-// @Success 200 {string} logout success
-// @router /logout [get]
-func (u *UserController) Logout() {
-	u.Data["json"] = "logout success"
-	u.ServeJSON()
-}
 
 //测试用函数
 // @Title login

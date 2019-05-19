@@ -197,12 +197,13 @@ func getOpenIdThroughCode(code string) (string,error){
 	code2session := Code2sessionResult{}
 
 	fmt.Println("In function getOpenIDThroughCode,get the request")
-	fmt.Println(request)
+	
 
 	err = json.Unmarshal(request, &code2session)
 	if err != nil {
 		return "",err
 	}
+	fmt.Println(code2session)
 	if code2session.ErrorCode > 0 {
 		err = fmt.Errorf("%d=>%s", code2session.ErrorCode, code2session.ErrorMsg)
 		return "",err
