@@ -107,14 +107,15 @@ func (u *UserController) Login() {
 // @router /query [post]
 func (u *UserController) Query() {
 	fmt.Println("In Query")
-	
+	user,err := Auth(&u.Controller)
+	fmt.Println("user check")
+	fmt.Println(user)
 	f,h,err := u.GetFile("myfile")
 	fmt.Println(f)
-	fmt.Println(h)
 	if err != nil{
 		fmt.Println("get file err",err)
 	} else{
-		u.SaveToFile("myfile",h.Filename)
+		u.SaveToFile("myfile","./image/"+h.Filename)
 		defer f.Close()
 	}
 	u.Data["json"] = "receive"
