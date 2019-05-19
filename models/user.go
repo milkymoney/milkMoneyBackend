@@ -18,13 +18,34 @@ type User struct {
 	Username		string				`json:"username"`
 	OpenId			string				`json:"openid"`
 	Balance			int					`json:"balance" orm:"default(0)"`
+	Image			string
 	AcceptRelation	[]*AcceptRelation	`orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`orm:"reverse(many)"`
 }
 
 /*
+测试用函数群
+*/
+
+//图片测试：给用户添加头像
+func AddImageToUser(id int, image string){
+	user,err := GetUser(id)
+	fmt.Println(err)
+	user.Image = image
+	_,err = UpdateUser(user.Id,user)
+	fmt.Println(err)
+}
+//通过用户拿到图片
+func GetImageFromUser(id int) string{
+	user,_ := GetUser(id)
+	return user.Image
+}
+
+/*
 功能函数群
 */
+
+
 
 //通过用户名得到用户
 func GetUserByName(userName string) (*User,error){
@@ -136,6 +157,7 @@ func UpdateUser(userId int, uu *User) (user *User, err error) {
 	}
 	user.Username = uu.Username
 	user.Balance = uu.Balance
+	user.Image = uu.Image
 	_,err = o.Update(user)
 	if err == nil{
 		return

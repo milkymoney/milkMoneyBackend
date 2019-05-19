@@ -98,27 +98,85 @@ func (u *UserController) Login() {
 }
 
 
-//测试用函数
+//测试用函数之登陆验证
 // @Title login
 // @Description Use session to get user's id
 // @Param	code	query 	string	true		"wx.Login response code"
 // @Success 200 {string} login success
 // @Failure 403 user not exist
-// @router /query [post]
+// @router /query [get]
 func (u *UserController) Query() {
 	fmt.Println("In Query")
-	user,err := Auth(&u.Controller)
-	fmt.Println("user check")
-	fmt.Println(user)
-	f,h,err := u.GetFile("myfile")
-	fmt.Println(f)
-	if err != nil{
-		fmt.Println("get file err",err)
-	} else{
-		u.SaveToFile("myfile","./image/"+h.Filename)
-		defer f.Close()
+	session := u.Ctx.Input.CruSession
+	fmt.Println("In controller's function query, get the session")
+	fmt.Println(session)
+	if val := session.Get("openid"); val != nil {
+		user,err := models.GetUserByOpenId(val.(string))
+		fmt.Println(user)
+		if err !=nil{
+			u.Data["json"] = "openid error"
+		} else{
+			u.Data["json"] = user.Id
+		}
+	} else {
+		u.Data["json"] ="need login"
 	}
-	u.Data["json"] = "receive"
 	u.ServeJSON()
 }
 
+//测试用函数之图片上传
+// @Title login
+// @Description Use session to get user's id
+// @Param	code	query 	string	true		"wx.Login response code"
+// @Success 200 {string} login success
+// @Failure 403 user not exist
+// @router /queryImage [post]
+func (u *UserController) QueryImage() {
+	fmt.Println("In Query")
+	session := u.Ctx.Input.CruSession
+	if val := session.Get("openid"); val != nil {
+		user,err := models.GetUserByOpenId(val.(string))
+		if err == nil {
+			fmt.Println("user id")
+			fmt.Println(user.Id)
+			f,h,err := u.GetFile("myfile")
+			fmt.Println(f)
+			if err != nil{
+				fmt.Println("get file err",err)
+			} else{
+				//成功收到图片
+				path := "./image/"+h.Filename
+				u.SaveToFile("myfile",path)//保存图片到本地
+				fmt.Println("Add path to file:")
+				fmt.Println(path)
+				models.AddImageToUser(user.Id,path)
+				defer f.Close()
+			}
+			u.Data["json"] = "receive"
+		}
+	}
+
+	u.ServeJSON()
+}
+
+//测试用函数之图片下载
+// @Title login
+// @Description Use session to get user's id
+// @Param	code	query 	string	true		"wx.Login response code"
+// @Success 200 {string} login success
+// @Failure 403 user not exist
+// @router /download [get]
+func (u *UserController) DownloadImage() {
+	fmt.Println("In Query")
+	session := u.Ctx.Input.CruSession
+	if val := session.Get("openid"); val != nil {
+		user,err := models.GetUserByOpenId(val.(string))
+		if err == nil {
+			fmt.Println("user id")
+			fmt.Println(user.Id)
+			path := models.GetImageFromUser(user.Id)
+			u.Ctx.Output.Download(path,"test.png")
+		}
+	}
+
+}
