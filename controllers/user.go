@@ -60,7 +60,7 @@ func (u *UserController) Put() {
 		json.Unmarshal(u.Ctx.Input.RequestBody, &user)
 		userId := originUser.Id
 		if err == nil{
-			uu, err := models.UpdateUser(userId, &user)
+			_, err := models.UpdateUser(userId, &user)
 			if err != nil {
 				u.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 			} else {
@@ -104,22 +104,20 @@ func (u *UserController) Login() {
 // @Param	code	query 	string	true		"wx.Login response code"
 // @Success 200 {string} login success
 // @Failure 403 user not exist
-// @router /query [get]
+// @router /query [post]
 func (u *UserController) Query() {
 	fmt.Println("In Query")
-	session := u.Ctx.Input.CruSession
-	fmt.Println("In controller's function query, get the session")
-	fmt.Println(session)
-	if val := session.Get("openid"); val != nil {
-		user,err := models.GetUserByOpenId(val.(string))
-		fmt.Println(user)
-		if err !=nil{
-			u.Data["json"] = "openid error"
-		} else{
-			u.Data["json"] = user.Id
-		}
-	} else {
-		u.Data["json"] ="need login"
+	
+	f,h,err := u.GetFile("myfile")
+	fmt.Println(f)
+	fmt.Println(h)
+	if err != nil{
+		fmt.Println("get file err",err)
+	} else{
+		u.SaveToFile("myfile",h.Filename)
+		defer f.Close()
 	}
+	u.Data["json"] = "receive"
 	u.ServeJSON()
 }
+

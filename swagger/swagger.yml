@@ -16,12 +16,29 @@ paths:
       tags:
       - task
       description: get task by taskId
-      operationId: TaskController.GetAllTask
+      operationId: TaskController.查询已发布任务列表
       parameters:
       - in: header
-        name: openid
-        description: user's id from wx
+        name: session
+        description: user's session ,get from login
         required: true
+        type: string
+      - in: query
+        name: page
+        description: page value,default is 1
+        required: true
+        type: integer
+      - in: query
+        name: myrelease
+        description: check release task
+        type: boolean
+      - in: query
+        name: myacceptance
+        description: check accept task
+        type: boolean
+      - in: query
+        name: keyword
+        description: search by labels
         type: string
       responses:
         "200":
@@ -31,9 +48,14 @@ paths:
     post:
       tags:
       - task
-      description: specific user create tasks
-      operationId: TaskController.CreateTask
+      description: 用户发送发布任务的请求
+      operationId: TaskController.发布任务
       parameters:
+      - in: header
+        name: session
+        description: user's session ,get from login
+        required: true
+        type: string
       - in: body
         name: body
         description: body for task content
@@ -42,21 +64,23 @@ paths:
           $ref: '#/definitions/models.Task'
       responses:
         "200":
-          description: '{map[string]string}'
+          description: ""
+          schema:
+            $ref: '#/definitions/controllers.CreateTaskReturnCode'
         "403":
           description: body is empty
-  /task/{taskid}:
+  /task/{taskId}:
     get:
       tags:
       - task
       description: get task by taskId
-      operationId: TaskController.GetTask
+      operationId: TaskController.查询指定id的任务
       parameters:
       - in: path
-        name: taskid
+        name: taskId
         description: the key
         required: true
-        type: string
+        type: integer
       responses:
         "200":
           description: ""
@@ -67,14 +91,19 @@ paths:
     put:
       tags:
       - task
-      description: update the task
-      operationId: TaskController.UpdateTask
+      description: 发布者任务被接取前可以随时修改任务信息，但是在任务被接受后则不能有任何改动
+      operationId: TaskController.修改任务信息
       parameters:
-      - in: path
-        name: taskid
-        description: The taskId you want to update
+      - in: header
+        name: session
+        description: user's session ,get from login
         required: true
         type: string
+      - in: path
+        name: taskId
+        description: The taskId you want to update
+        required: true
+        type: integer
       - in: body
         name: body
         description: body for task content
@@ -85,57 +114,68 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/models.Task'
+            $ref: '#/definitions/controllers.HttpResponseCode'
         "403":
           description: :taskid is not int
     delete:
       tags:
       - task
-      description: delete the task
-      operationId: TaskController.DeleteTask
+      description: 考虑到已经发布的任务可能存在因为其他不可抗逆因素而需要取消的情况，任务允许删除。条件是该任务未被接受或者被接受时间不超过十分钟
+      operationId: TaskController.删除任务
       parameters:
+      - in: header
+        name: session
+        description: user's session ,get from login
+        required: true
+        type: string
       - in: path
-        name: taskid
+        name: taskId
         description: The taskid you want to delete
         required: true
-        type: string
+        type: integer
       responses:
         "200":
-          description: '{string} delete success!'
-        "403":
-          description: taskid is empty
-  /task/accept/{taskid}:
-    put:
-      tags:
-      - task
-      description: user accept the task
-      operationId: TaskController.AcceptTask
-      parameters:
-      - in: path
-        name: taskid
-        description: The taskid you want to accept
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} accept success!'
+          description: ""
+          schema:
+            $ref: '#/definitions/controllers.HttpResponseCode'
         "403":
           description: taskid is empty
   /task/settleup/{taskid}:
-    put:
+    get:
       tags:
       - task
-      description: user finish the task
-      operationId: TaskController.SettleUpTask
+      description: 接受者完成任务的信息以及证明只有发布者和接受者自身才能看见
+      operationId: TaskController.接受者查询自己已完成任务的信息
       parameters:
       - in: path
-        name: taskid
-        description: The taskid you want to accept
+        name: taskId
+        description: 任务id
         required: true
-        type: string
+        type: integer
       responses:
         "200":
-          description: '{string} finish task success!'
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Task'
+        "403":
+          description: taskid is empty
+  /task/task/accept/{taskId}:
+    post:
+      tags:
+      - task
+      description: user accept the task
+      operationId: TaskController.接受任务
+      parameters:
+      - in: path
+        name: taskId
+        description: 任务id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/controllers.HttpResponseCode'
         "403":
           description: taskid is empty
   /user/:
@@ -143,11 +183,11 @@ paths:
       tags:
       - user
       description: get user by openid(in session)
-      operationId: UserController.GetUser
+      operationId: UserController.查询用户信息
       parameters:
       - in: header
-        name: openid
-        description: user's id from wx
+        name: session
+        description: user's session ,get from login
         required: true
         type: string
       responses:
@@ -157,33 +197,16 @@ paths:
             $ref: '#/definitions/models.User'
         "403":
           description: :uid is empty
-    post:
-      tags:
-      - user
-      description: create users
-      operationId: UserController.CreateUser
-      parameters:
-      - in: body
-        name: body
-        description: body for user content
-        required: true
-        schema:
-          $ref: '#/definitions/models.User'
-      responses:
-        "200":
-          description: '{int} models.User.Id'
-        "403":
-          description: body is empty
   /user/{uid}:
     put:
       tags:
       - user
       description: update the user
-      operationId: UserController.UpdateUser
+      operationId: UserController.修改用户个人信息
       parameters:
-      - in: path
-        name: uid
-        description: The uid you want to update
+      - in: header
+        name: session
+        description: user's session ,get from login
         required: true
         type: string
       - in: body
@@ -196,25 +219,9 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/controllers.HttpResponseCode'
         "403":
           description: :uid is not int
-    delete:
-      tags:
-      - user
-      description: delete the user
-      operationId: UserController.DeleteUser
-      parameters:
-      - in: path
-        name: uid
-        description: The uid you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: uid is empty
   /user/login:
     get:
       tags:
@@ -232,15 +239,6 @@ paths:
           description: '{string} login success'
         "403":
           description: user not exist
-  /user/logout:
-    get:
-      tags:
-      - user
-      description: Logs out current logged in user session
-      operationId: UserController.logout
-      responses:
-        "200":
-          description: '{string} logout success'
   /user/query:
     get:
       tags:
@@ -259,6 +257,25 @@ paths:
         "403":
           description: user not exist
 definitions:
+  controllers.CreateTaskReturnCode:
+    title: CreateTaskReturnCode
+    type: object
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+      taskId:
+        type: integer
+        format: int64
+  controllers.HttpResponseCode:
+    title: HttpResponseCode
+    type: object
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
   models.AcceptRelation:
     title: AcceptRelation
     type: object
