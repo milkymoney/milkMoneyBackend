@@ -356,6 +356,7 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 // @router /confirm/:taskId [post]
 func (t *TaskController) PublisherFinishTask(){
 	user,err := Auth(&t.Controller)
+	fmt.Println(user)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 	} else{
@@ -369,18 +370,15 @@ func (t *TaskController) PublisherFinishTask(){
 			if err != nil{
 				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 			} else{
-				//对于给定任务，访问所有的完成情况
-				relations,err := models.GetReleaseRelation(user.Id,task.Id)
-				if err != nil{
+				task.State = models.Task_Done
+				_,err = models.UpdateTask(task.Id,task)
+				if err == nil{
+					t.Data["json"] = HttpResponseCode{Success:true,Message:"finish the task"}
+				} else{
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-				}else{
-					//需要修改任务的状态
-					//因为暂时还没有确定，就不作了
-					relations[0] = nil
-					t.Data["json"] = HttpResponseCode{Success:true,Message:"haven't done yet"}
 				}
-				
 			}
+			
 		}
 	}
 	t.ServeJSON()
