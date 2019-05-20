@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/astaxie/beego"
 	"fmt"
+	"strconv"
 )
 
 
@@ -98,9 +99,9 @@ func (t *TaskController) Post() {
 // @Failure 403 :taskid is empty
 // @router /:taskId [get]
 func (t *TaskController) Get() {
-	tid,err := t.GetInt(":taskId")
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
 	if err==nil {
-		taskId := int(tid)
 		task, err := models.GetTask(taskId)
 		if err != nil {
 			t.Data["json"] = err.Error()
@@ -122,10 +123,9 @@ func (t *TaskController) Get() {
 // @Failure 403 :taskid is not int
 // @router /:taskId [put]
 func (t *TaskController) Put() {
-	tid,err := t.GetInt(":taskId")
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
 	if err!=nil {
-		taskId := int(tid)
-
 		var task models.Task
 		json.Unmarshal(t.Ctx.Input.RequestBody, &task)
 		
@@ -150,9 +150,9 @@ func (t *TaskController) Put() {
 // @Failure 403 taskid is empty
 // @router /:taskId [delete]
 func (t *TaskController) Delete() {
-	tid,err := t.GetInt(":taskId")
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
 	if err ==nil{
-		taskId := int(tid)
 		models.DeleteTask(taskId)
 		t.Data["json"] = HttpResponseCode{Success:true,Message:"delete success"}
 	} else{
@@ -174,11 +174,11 @@ func (t *TaskController) AcceptTask(){
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 	} else{
-		tid,err := t.GetInt(":taskId")
+		tid := t.GetString(":taskId")
+		taskId,err := strconv.Atoi(tid)
 		if err != nil{
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}else{
-			taskId := int(tid)
 			_,err = models.CreateNewAcRelById(user.Id,taskId,"20190513")//暂时还没有加上时间
 			if err == nil{
 				t.Data["json"] = HttpResponseCode{Success:true,Message:"accept success"}
@@ -209,11 +209,11 @@ func (t *TaskController) AcceptorCheckFinishTask(){
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 	} else{
-		tid,err := t.GetInt(":taskId")
+		tid := t.GetString(":taskId")
+		taskId,err := strconv.Atoi(tid)
 		if err != nil{
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}else{
-			taskId := int(tid)
 			//拿到了任务id，现在拿到任务，并返回数组
 			task,err := models.GetTask(taskId)
 			if err != nil{
@@ -246,7 +246,8 @@ func (t *TaskController) AcceptorCheckFinishTask(){
 func (t *TaskController) ExecutorSettleupTask(){
 	user,err := Auth(&t.Controller)//拿到用户登陆信息
 	if err == nil{
-		tid,err := t.GetInt(":taskId")
+		tid := t.GetString(":taskId")
+		taskId,err := strconv.Atoi(tid)
 		if err != nil{
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		} else{
@@ -260,7 +261,7 @@ func (t *TaskController) ExecutorSettleupTask(){
 				t.SaveToFile("myfile",path)//保存图片到本地
 
 				//顺利拿到关系
-				releaseRelation,err := models.GetReleaseRelation(user.Id,int(tid))
+				releaseRelation,err := models.GetReleaseRelation(user.Id,taskId)
 				if err != nil{//鬼知道什么错误
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 				}else if len(releaseRelation)==0{//没有这个关系
@@ -303,15 +304,15 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 	//还没有做用户权限检测
 	_,err := Auth(&t.Controller)
 
-	
+
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 	} else{
-		tid,err := t.GetInt(":taskId")
+		tid := t.GetString(":taskId")
+		taskId,err := strconv.Atoi(tid)
 		if err != nil{
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}else{
-			taskId := int(tid)
 			//拿到了任务id，现在拿到任务，并返回数组
 			task,err := models.GetTask(taskId)
 			if err != nil{
@@ -358,11 +359,11 @@ func (t *TaskController) PublisherFinishTask(){
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 	} else{
-		tid,err := t.GetInt(":taskId")
+		tid := t.GetString(":taskId")
+		taskId,err := strconv.Atoi(tid)
 		if err != nil{
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}else{
-			taskId := int(tid)
 			//拿到了任务id，现在拿到任务，并返回数组
 			task,err := models.GetTask(taskId)
 			if err != nil{

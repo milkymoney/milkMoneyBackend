@@ -52,7 +52,7 @@ func AddImageToSQL(relationId int, image *ConfirmImage) error{
 	maxImageNum := 3
 	//检查数量，如果超过则需要删除最早加入的一张
 	var images []*ConfirmImage
-	num,err := o.QueryTable("confirm_image").Filter("release_relation",relationId).All(&images)
+	num,err := o.QueryTable("confirm_image").Filter("release_relation_id",relationId).All(&images)
 	if err != nil{
 		return err
 	}
