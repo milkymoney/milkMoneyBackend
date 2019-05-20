@@ -21,13 +21,77 @@ type AcceptRelation struct {
 }
 
 type ReleaseRelation struct{
-	Id			int
-	ReleaseDate	string
-	User		*User	`orm:"rel(fk)"`
-	Task		*Task	`orm:"rel(fk)"`
+	Id				int
+	ReleaseDate		string
+	ConfirmImages	[]*ConfirmImage	`orm:"reverse(many)"`
+	User			*User			`orm:"rel(fk)"`
+	Task			*Task			`orm:"rel(fk)"`
+}
+
+//完成任务时确认要用到的图片，最多三个
+type ConfirmImage struct{
+	Id					int
+	ImagePath			string //保存的实际上应该是文件名，比如xxx.png，访问的时候目前是可以通过静态文件访问，比如域名/image/xxx.png这样子
+	ReleaseRelation		*ReleaseRelation	`orm:"rel(fk)"`
 }
 
 /*业务函数群*/
+
+//向图片数组中添加一张图片。如果已经有n张图片，删除最早加入的一张（id最小的一张）。
+//失败场景：没有找到对应的关系
+func AddImageToSQL(relationId int, image *ConfirmImage) error{
+	o := orm.NewOrm()
+	relation := &ReleaseRelation{Id:relationId}
+	err := o.Read(relation)
+	if err != nil{
+		return err
+	} 
+
+	//拿到关系，进行加入操作
+	image.ReleaseRelation = relation
+	maxImageNum := 3
+	//检查数量，如果超过则需要删除最早加入的一张
+	var images []*ConfirmImage
+	num,err := o.QueryTable("confirm_image").Filter("release_relation",relationId).All(&images)
+	if err != nil{
+		return err
+	}
+
+	if int(num) == maxImageNum && maxImageNum > 0{//需要执行删除操作
+		minId := images[0].Id
+		for i := 1; i <= maxImageNum-1; i++{
+			if images[i].Id < minId{
+				minId = images[i].Id
+			}
+		}
+
+		//删除最小的Id最对应的image
+		_,_ = o.Delete(&ConfirmImage{Id:minId})
+	}
+	_,err= o.Insert(image)
+	if err !=nil{
+		return err
+	}
+
+	return nil
+}
+
+//根据完成关系的id拿到图片数组
+func GetImagesByRelationId(relationId int) ([]*ConfirmImage,error){
+	o := orm.NewOrm()
+	var images []*ConfirmImage
+	_,err := o.QueryTable("confirm_image").Filter("release_relation",relationId).All(&images)
+	return images,err
+}
+//根据用户id和任务id拿到图片数组
+func GetImagesByUserAndTaskId(userId,taskId int) ([]*ConfirmImage,error){
+	relations,err := GetReleaseRelation(userId,taskId)
+	if err!=nil{
+		return nil,err
+	}
+	images,err := GetImagesByRelationId(relations[0].Id)
+	return images,err
+}
 
 //根据用户id和任务id创建新的AcceptRelation，并加入到数据库之中
 func CreateNewAcRelById(userId,taskId int,acceptDate string) (*AcceptRelation,error){
@@ -48,6 +112,7 @@ func CreateNewAcRelById(userId,taskId int,acceptDate string) (*AcceptRelation,er
 	return newRelation,nil
 }
 
+//根据用户id和任务id创建新的ReleaseRelation，并加入到数据库中。
 func CreateNewReRelById(userId,taskId int,releaseDate string) (*ReleaseRelation,error){
 	user,err := GetUserById(userId)
 	if err != nil{
@@ -64,6 +129,19 @@ func CreateNewReRelById(userId,taskId int,releaseDate string) (*ReleaseRelation,
 	}
 	newRelation.Id = reId
 	return newRelation,nil
+}
+
+//本方法没有经过测试
+
+//根据终止关系拿到其用户信息
+//因为关系创建是由外键维持的，应该不会失败
+func GetUserThroughRelRelation(relation *ReleaseRelation)	(*User,error){
+	o := orm.NewOrm()
+	//根据relation拿到对应的User
+	if relation.User != nil{
+		o.Read(relation.User)
+	}
+	return relation.User,nil
 }
 
 /*
@@ -160,6 +238,41 @@ func CreateReleaseRelation(relation *ReleaseRelation) (int,error){
 	return id,nil
 }
 
+/*
+函数目的：拿到ReleaseRelation
+调用时机：需要使用userId和taskId拿到relation
+需要执行的任务：
+	1.从数据库中查询并返回对象
+
+调用成功：返回这个对象,nil
+调用失败：nil,err对象
+	调用失败场景：查询不到对应的对象
+*/
+func GetReleaseRelation(userId,taskId int) (relation []*ReleaseRelation,err error){
+	var relations []*ReleaseRelation
+	o := orm.NewOrm()
+
+	if _,err := o.QueryTable("release_relation").Filter("user_id",userId).Filter("task_id",taskId).All(&relations); err != nil{
+		return nil,fmt.Errorf("User id or task id not correct.")
+	} else{
+		return relations,nil
+	}
+
+}
+
+/*
+拿到所有与指定task相关联的ReleaseRelation
+*/
+func GetReleaseRelationByTaskId(taskId int) (relation []*ReleaseRelation,err error){
+	var relations []*ReleaseRelation
+	o := orm.NewOrm()
+
+	if _,err := o.QueryTable("release_relation").Filter("task_id",taskId).All(&relations); err != nil{
+		return nil,fmt.Errorf("User id or task id not correct.")
+	} else{
+		return relations,nil
+	}
+}
 /*
 函数目的：删除ReleaseRelation
 调用时机：需要将relation从数据库中删除

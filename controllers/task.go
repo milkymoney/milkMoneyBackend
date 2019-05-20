@@ -164,9 +164,10 @@ func (t *TaskController) Delete() {
 //注：暂时不检查是否达到最大值，只是进行处理
 // @Title 接受任务
 // @Description user accept the task
+// @Param	session		header 	string	true		"user's session ,get from login"
 // @Param	taskId		path 	integer	true		"任务id"
 // @Success 200 {object} controllers.HttpResponseCode
-// @Failure 403 taskid is empty
+// @Failure 403 {object} controllers.HttpResponseCode
 // @router /task/accept/:taskId [post]
 func (t *TaskController) AcceptTask(){
 	user,err := Auth(&t.Controller)
@@ -189,15 +190,21 @@ func (t *TaskController) AcceptTask(){
 	t.ServeJSON()
 }
 
-//暂时没做图片证明部分prove，没做身份验证。
+//暂时没做图片证明部分prove
+
+type AcceptorCheckFinishCodeResponse struct{
+	Proves			[]string	`json:"proves"`
+	models.Task
+}
 
 // @Title 接受者查询自己已完成任务的信息
 // @Description 接受者完成任务的信息以及证明只有发布者和接受者自身才能看见
+// @Param	session		header 	string	true		"user's session ,get from login"
 // @Param	taskId		path 	integer	true		"任务id"
-// @Success 200 {object} models.Task
-// @Failure 403 taskid is empty
+// @Success 200 {object} controllers.HttpResponseCode
+// @Failure 403 {object} controllers.HttpResponseCode
 // @router /settleup/:taskid [get]
-func (t *TaskController) AcceptanceCheckFinishTask(){
+func (t *TaskController) AcceptorCheckFinishTask(){
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
@@ -207,23 +214,146 @@ func (t *TaskController) AcceptanceCheckFinishTask(){
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}else{
 			taskId := int(tid)
-			_,err = models.CreateNewReRelById(user.Id,taskId,"20190513")//暂时还没有加上时间
-			if err == nil{
-				t.Data["json"] = HttpResponseCode{Success:true,Message:"accept success"}
-			} else{
+			//拿到了任务id，现在拿到任务，并返回数组
+			task,err := models.GetTask(taskId)
+			if err != nil{
 				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+			} else{
+				images,err := models.GetImagesByUserAndTaskId(user.Id,task.Id)
+				if err !=nil{
+					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+				} else{
+					//将images数组中的路径全部取出，打包成新的数组
+					imageUrl := make([]string,len(images))
+					for _,image := range images{
+						imageUrl = append(imageUrl,image.ImagePath)
+					}
+					t.Data["json"] = AcceptorCheckFinishCodeResponse{Task:*task,Proves:imageUrl}
+				}
 			}
 		}
 	}
 	t.ServeJSON()
 }
-/*
-// @Title 执行者结算任务
+
+// @Title 任务接受者结算任务
+// @Param	session		header 	string	true		"user's session ,get from login"
 // @Param	taskId		path 	integer	true		"任务id"
-// @Success 200 {object} models.Task
-// @Failure 403 taskid is empty
+// @Param   graph		body	binary	true		"图片，使用myfile:xxx传输"
+// @Success 200 {object} controllers.HttpResponseCode
+// @Failure 403 {object} controllers.HttpResponseCode
 // @router /settleup/:taskId [post]
 func (t *TaskController) ExecutorSettleupTask(){
+	user,err := Auth(&t.Controller)//拿到用户登陆信息
+	if err == nil{
+		tid,err := t.GetInt(":taskId")
+		if err != nil{
+			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		} else{
+			f,h,err := t.GetFile("myfile")
+			if err != nil{
+				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+			} else{
+				//成功收到图片，将图片的路径保存到本地
+				defer f.Close()
+				path := "./image/"+h.Filename
+				t.SaveToFile("myfile",path)//保存图片到本地
+
+				//顺利拿到关系
+				releaseRelation,err := models.GetReleaseRelation(user.Id,int(tid))
+				if err != nil{//鬼知道什么错误
+					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+				}else if len(releaseRelation)==0{//没有这个关系
+					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Errorf("no release relation between this user and task.").Error()}
+				} else{
+					//成功将图片加入到数据库
+					err = models.AddImageToSQL(releaseRelation[0].Id,&models.ConfirmImage{ImagePath:h.Filename,ReleaseRelation:releaseRelation[0]})
+					if err !=nil{//天晓得什么错误
+						t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+					} else{
+						t.Data["json"] = HttpResponseCode{Success:true,Message:"success"}
+					}
+				}
+			}
+		}
+
+	}else{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+	}
+
+	t.ServeJSON()
+}
+
+
+//发布者查询任务完成信息所需要的返回类型
+//返回对象时一个数组，单个对象包括用户和其上传的图片数组
+type PublisherCheckTaskFinishResponse struct{
+	models.User
+	Proves 			[]string
+}
+
+// @Title 发布者查询任务完成信息
+// @Description 任务接受者将任务完成信息上传到服务器上，发布者查看所有接受者的信息以及其上传的任务完成信息
+// @Param	session		header 	string	true		"user's session ,get from login"
+// @Param	taskId		path 	integer	true		"任务id"
+// @Success 200 {[object]} controllers.Task
+// @Failure 403 {object} controllers.HttpResponseCode
+// @router /confirm/:taskId [get]
+func (t *TaskController) PublisherCheckTaskFinish(){
+	//还没有做用户权限检测
+	_,err := Auth(&t.Controller)
+
+	
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+	} else{
+		tid,err := t.GetInt(":taskId")
+		if err != nil{
+			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		}else{
+			taskId := int(tid)
+			//拿到了任务id，现在拿到任务，并返回数组
+			task,err := models.GetTask(taskId)
+			if err != nil{
+				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+			} else{
+				//对于给定任务，访问所有的完成情况
+				//！！！！！！！！这里有问题
+				relations,err := models.GetReleaseRelationByTaskId(task.Id)
+				if err != nil{
+					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+				}else{
+					//对于所有的完成关系，汇集用户信息和任务信息，制成数组并返回
+					ansSet := make([]*PublisherCheckTaskFinishResponse,len(relations))
+					for _,relation := range relations{
+						//拿到关系对应的用户信息
+						aimUser,_ := models.GetUserThroughRelRelation(relation)
+						//拿到关系对应的确认图片信息的路径
+						images,_ := models.GetImagesByRelationId(relation.Id)
+						imageUrl := make([]string,len(images))
+						for _,image := range images{
+							imageUrl = append(imageUrl,image.ImagePath)
+						}
+						//添加两者到数组中
+						ansSet = append(ansSet,&PublisherCheckTaskFinishResponse{User:*aimUser,Proves:imageUrl})
+					}
+					//返回数组
+					t.Data["json"] = ansSet
+				}
+				
+			}
+		}
+	}
+	t.ServeJSON()
+}
+
+// @Title 发布者结算任务
+// @Param	session		header 	string	true		"user's session ,get from login"
+// @Param	taskId		path 	integer	true		"任务id"
+// @Success 200 {object} controllers.HttpResponseCode
+// @Failure 403 {object} controllers.HttpResponseCode
+// @router /confirm/:taskId [post]
+func (t *TaskController) PublisherFinishTask(){
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
@@ -233,13 +363,24 @@ func (t *TaskController) ExecutorSettleupTask(){
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}else{
 			taskId := int(tid)
-			_,err = models.CreateNewReRelById(user.Id,taskId,"20190513")//暂时还没有加上时间
-			if err == nil{
-				t.Data["json"] = HttpResponseCode{Success:true,Message:"accept success"}
-			} else{
+			//拿到了任务id，现在拿到任务，并返回数组
+			task,err := models.GetTask(taskId)
+			if err != nil{
 				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+			} else{
+				//对于给定任务，访问所有的完成情况
+				relations,err := models.GetReleaseRelation(user.Id,task.Id)
+				if err != nil{
+					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+				}else{
+					//需要修改任务的状态
+					//因为暂时还没有确定，就不作了
+					relations[0] = nil
+					t.Data["json"] = HttpResponseCode{Success:true,Message:"haven't done yet"}
+				}
+				
 			}
 		}
 	}
 	t.ServeJSON()
-}*/
+}

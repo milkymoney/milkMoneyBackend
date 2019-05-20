@@ -35,7 +35,7 @@ func AddImageToUser(id int, image string){
 	_,err = UpdateUser(user.Id,user)
 	fmt.Println(err)
 }
-//通过用户拿到图片
+//通过用户拿到图片（头像）
 func GetImageFromUser(id int) string{
 	user,_ := GetUser(id)
 	return user.Image
