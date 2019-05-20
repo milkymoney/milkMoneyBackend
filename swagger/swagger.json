@@ -102,14 +102,21 @@
                 }
             }
         },
-        "/task/settleup/{taskid}": {
+        "/task/confirm/{taskId}": {
             "get": {
                 "tags": [
                     "task"
                 ],
-                "description": "接受者完成任务的信息以及证明只有发布者和接受者自身才能看见",
-                "operationId": "TaskController.接受者查询自己已完成任务的信息",
+                "description": "任务接受者将任务完成信息上传到服务器上，发布者查看所有接受者的信息以及其上传的任务完成信息",
+                "operationId": "TaskController.发布者查询任务完成信息",
                 "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
                     {
                         "in": "path",
                         "name": "taskId",
@@ -120,25 +127,26 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/models.Task"
-                        }
+                        "description": "{[object]} controllers.Task"
                     },
                     "403": {
-                        "description": "taskid is empty"
+                        "description": "{object} controllers.HttpResponseCode"
                     }
                 }
-            }
-        },
-        "/task/task/accept/{taskId}": {
+            },
             "post": {
                 "tags": [
                     "task"
                 ],
-                "description": "user accept the task",
-                "operationId": "TaskController.接受任务",
+                "operationId": "TaskController.发布者结算任务",
                 "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
                     {
                         "in": "path",
                         "name": "taskId",
@@ -155,7 +163,123 @@
                         }
                     },
                     "403": {
-                        "description": "taskid is empty"
+                        "description": "{object} controllers.HttpResponseCode"
+                    }
+                }
+            }
+        },
+        "/task/settleup/{taskId}": {
+            "post": {
+                "tags": [
+                    "task"
+                ],
+                "operationId": "TaskController.任务接受者结算任务",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "description": "任务id",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "body",
+                        "name": "graph",
+                        "description": "图片，使用myfile:xxx传输",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/binary"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.HttpResponseCode"
+                        }
+                    },
+                    "403": {
+                        "description": "{object} controllers.HttpResponseCode"
+                    }
+                }
+            }
+        },
+        "/task/settleup/{taskid}": {
+            "get": {
+                "tags": [
+                    "task"
+                ],
+                "description": "接受者完成任务的信息以及证明只有发布者和接受者自身才能看见",
+                "operationId": "TaskController.接受者查询自己已完成任务的信息",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "description": "任务id",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.HttpResponseCode"
+                        }
+                    },
+                    "403": {
+                        "description": "{object} controllers.HttpResponseCode"
+                    }
+                }
+            }
+        },
+        "/task/task/accept/{taskId}": {
+            "post": {
+                "tags": [
+                    "task"
+                ],
+                "description": "user accept the task",
+                "operationId": "TaskController.接受任务",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "description": "任务id",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.HttpResponseCode"
+                        }
+                    },
+                    "403": {
+                        "description": "{object} controllers.HttpResponseCode"
                     }
                 }
             }
@@ -295,6 +419,32 @@
                 }
             }
         },
+        "/user/download": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "description": "Use session to get user's id",
+                "operationId": "UserController.login",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "code",
+                        "description": "wx.Login response code",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} login success"
+                    },
+                    "403": {
+                        "description": "user not exist"
+                    }
+                }
+            }
+        },
         "/user/login": {
             "get": {
                 "tags": [
@@ -323,6 +473,32 @@
         },
         "/user/query": {
             "get": {
+                "tags": [
+                    "user"
+                ],
+                "description": "Use session to get user's id",
+                "operationId": "UserController.login",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "code",
+                        "description": "wx.Login response code",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} login success"
+                    },
+                    "403": {
+                        "description": "user not exist"
+                    }
+                }
+            }
+        },
+        "/user/queryImage": {
+            "post": {
                 "tags": [
                     "user"
                 ],
@@ -387,6 +563,10 @@
         }
     },
     "definitions": {
+        "binary": {
+            "title": "binary",
+            "type": "object"
+        },
         "controllers.CreateTaskReturnCode": {
             "title": "CreateTaskReturnCode",
             "type": "object",
@@ -434,10 +614,32 @@
                 }
             }
         },
+        "models.ConfirmImage": {
+            "title": "ConfirmImage",
+            "type": "object",
+            "properties": {
+                "Id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "ImagePath": {
+                    "type": "string"
+                },
+                "ReleaseRelation": {
+                    "$ref": "#/definitions/models.ReleaseRelation"
+                }
+            }
+        },
         "models.ReleaseRelation": {
             "title": "ReleaseRelation",
             "type": "object",
             "properties": {
+                "ConfirmImages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ConfirmImage"
+                    }
+                },
                 "Id": {
                     "type": "integer",
                     "format": "int64"
@@ -531,6 +733,9 @@
                     "items": {
                         "$ref": "#/definitions/models.AcceptRelation"
                     }
+                },
+                "Image": {
+                    "type": "string"
                 },
                 "ReleaseRelation": {
                     "type": "array",
