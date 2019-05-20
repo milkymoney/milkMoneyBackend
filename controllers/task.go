@@ -43,7 +43,7 @@ type HttpResponseCode struct{
 // @Param	myacceptance	query 	boolean	false		"check accept task"
 // @Param	keyword		query 	string	false		"search by labels"
 // @Success 200 {[object]} models.Task
-// @Failure 403 :taskid is empty
+// @Failure 403 :taskId is empty
 // @router / [get]
 func (t *TaskController) GetAllTask() {
 	user,err := Auth(&t.Controller)
@@ -96,7 +96,7 @@ func (t *TaskController) Post() {
 // @Description get task by taskId
 // @Param	taskId		path 	integer	true		"the key"
 // @Success 200 {object} models.Task
-// @Failure 403 :taskid is empty
+// @Failure 403 :taskId is empty
 // @router /:taskId [get]
 func (t *TaskController) Get() {
 	tid := t.GetString(":taskId")
@@ -120,7 +120,7 @@ func (t *TaskController) Get() {
 // @Param	taskId		path 	integer	true		"The taskId you want to update"
 // @Param	body		body 	models.Task	true		"body for task content"
 // @Success 200 {object} controllers.HttpResponseCode
-// @Failure 403 :taskid is not int
+// @Failure 403 :taskId is not int
 // @router /:taskId [put]
 func (t *TaskController) Put() {
 	tid := t.GetString(":taskId")
@@ -145,9 +145,9 @@ func (t *TaskController) Put() {
 // @Title 删除任务
 // @Description 考虑到已经发布的任务可能存在因为其他不可抗逆因素而需要取消的情况，任务允许删除。条件是该任务未被接受或者被接受时间不超过十分钟
 // @Param	session		header 	string	true		"user's session ,get from login"
-// @Param	taskId		path 	integer	true		"The taskid you want to delete"
+// @Param	taskId		path 	integer	true		"The taskId you want to delete"
 // @Success 200 {object} controllers.HttpResponseCode
-// @Failure 403 taskid is empty
+// @Failure 403 taskId is empty
 // @router /:taskId [delete]
 func (t *TaskController) Delete() {
 	tid := t.GetString(":taskId")
@@ -203,7 +203,7 @@ type AcceptorCheckFinishCodeResponse struct{
 // @Param	taskId		path 	integer	true		"任务id"
 // @Success 200 {object} controllers.HttpResponseCode
 // @Failure 403 {object} controllers.HttpResponseCode
-// @router /settleup/:taskid [get]
+// @router /settleup/:taskId [get]
 func (t *TaskController) AcceptorCheckFinishTask(){
 	user,err := Auth(&t.Controller)
 	if err != nil{
@@ -224,7 +224,7 @@ func (t *TaskController) AcceptorCheckFinishTask(){
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 				} else{
 					//将images数组中的路径全部取出，打包成新的数组
-					imageUrl := make([]string,len(images))
+					var imageUrl []string
 					for _,image := range images{
 						imageUrl = append(imageUrl,image.ImagePath)
 					}
@@ -325,13 +325,13 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 				}else{
 					//对于所有的完成关系，汇集用户信息和任务信息，制成数组并返回
-					ansSet := make([]*PublisherCheckTaskFinishResponse,len(relations))
+					var ansSet []*PublisherCheckTaskFinishResponse
 					for _,relation := range relations{
 						//拿到关系对应的用户信息
 						aimUser,_ := models.GetUserThroughRelRelation(relation)
 						//拿到关系对应的确认图片信息的路径
 						images,_ := models.GetImagesByRelationId(relation.Id)
-						imageUrl := make([]string,len(images))
+						var imageUrl []string
 						for _,image := range images{
 							imageUrl = append(imageUrl,image.ImagePath)
 						}

@@ -80,7 +80,7 @@ func AddImageToSQL(relationId int, image *ConfirmImage) error{
 func GetImagesByRelationId(relationId int) ([]*ConfirmImage,error){
 	o := orm.NewOrm()
 	var images []*ConfirmImage
-	_,err := o.QueryTable("confirm_image").Filter("release_relation",relationId).All(&images)
+	_,err := o.QueryTable("confirm_image").Filter("release_relation_id",relationId).All(&images)
 	return images,err
 }
 //根据用户id和任务id拿到图片数组
