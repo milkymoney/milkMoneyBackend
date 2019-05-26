@@ -9,13 +9,14 @@ func init(){
 
 }
 
-type TaskState int32
+type TaskState string
 
 const(
-	Task_Open	TaskState = 0	//任务为开放状态，正常运行
-	Task_Close	TaskState = 1	//任务被发布者关闭，暂时不能够被接受，但是能够再次打开
-	Task_Done	TaskState = 2	//任务已经被完成了
-	Task_Delete	TaskState = 3	//任务被发布者删除，原则上不能修改，未来可能会被删除
+	Task_pend 	TaskState = "pending"	//任务正在审核
+	Task_do		TaskState = "doing"		//任务正在进行中
+	Task_check	TaskState = "checking"  //任务发布者检查任务完成情况
+	Task_other	TaskState = "other"		//其他状况
+	Task_finish	TaskState = "finished"	//任务完成
 )
 
 //注：原则上，所有的输入数据合法性检查由controller处进行。在models进行的是与模型之间数据关系有关的检查，比如任务的最多接纳人数是否达到上界，等。

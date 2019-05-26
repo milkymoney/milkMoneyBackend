@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/astaxie/beego"
 	"fmt"
+	"strings"
 	"strconv"
 )
 
@@ -31,7 +32,29 @@ type HttpResponseCode struct{
 	Success		bool	`json:"success"`
 }
 
-
+//没有测试
+//功能函数：给定一个model.Task指针和一个label，要求Task的label满足给定label的所有条目（超集）
+func HasLabel(task *models.Task,label string) bool{
+	requireString := strings.Split(label," ")
+	aimString := strings.Split(task.Label," ")
+	for _,s := range requireString{
+		if s == ""{
+			continue
+		}
+		pass := false
+		//对于给定的label，只要目标数组中存在，就通过。不然，就是不通过.
+		for _,aim := range aimString{
+			if s == aim{
+				pass = true
+				break
+			}
+		}
+		if !pass{
+			return false
+		}
+	}
+	return true
+}
 
 
 // 拿到所有任务，按照页面进行分解。（目前仅能够返回所有的任务，没有做页面，没有做筛选）
@@ -54,7 +77,35 @@ func (t *TaskController) GetAllTask() {
 		if err != nil{
 			t.Data["json"] = err.Error()
 		} else{
-			t.Data["json"] = tasks
+			labels := t.GetString("keyword")
+			//依据label进行筛选
+			if labels != ""{
+				num := len(tasks)
+				for i:=0;i<num;i++{
+					//如果任务不包含标签
+					if(!HasLabel(tasks[i],labels)){
+						//将该元素与最后一个交换，删除最后一个元素
+						tasks[i] = tasks[num-1]
+						tasks = tasks[:num-1]
+						num--
+						i--
+					}
+				}
+			}
+			
+			//根据页数进行返回
+			elementNum := 10
+			page := t.GetString("page")
+			if page == ""{
+				t.Data["json"] = tasks
+			} else{
+				pageNumber,err := strconv.Atoi(page)
+				if err != nil{
+					t.Data["json"] = err
+				} else{
+					t.Data["json"] = tasks[pageNumber*elementNum:(pageNumber+1)*elementNum]
+				}
+			}
 		}
 	}
 	t.ServeJSON()
@@ -264,7 +315,7 @@ func (t *TaskController) ExecutorSettleupTask(){
 				releaseRelation,err := models.GetReleaseRelation(user.Id,taskId)
 				if err != nil{//鬼知道什么错误
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-				}else if len(releaseRelation)==0{//没有这个关系
+				}else if len(releaseRelation)==0{//没有这个关系，说明没有权限或者任务id错误
 					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Errorf("no release relation between this user and task.").Error()}
 				} else{
 					//成功将图片加入到数据库
@@ -301,10 +352,7 @@ type PublisherCheckTaskFinishResponse struct{
 // @Failure 403 {object} controllers.HttpResponseCode
 // @router /confirm/:taskId [get]
 func (t *TaskController) PublisherCheckTaskFinish(){
-	//还没有做用户权限检测
-	_,err := Auth(&t.Controller)
-
-
+	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 	} else{
@@ -319,8 +367,7 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 			} else{
 				//对于给定任务，访问所有的完成情况
-				//！！！！！！！！这里有问题
-				relations,err := models.GetReleaseRelationByTaskId(task.Id)
+				relations,err := models.GetReleaseRelation(user.Id,task.Id)
 				if err != nil{
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 				}else{
@@ -370,13 +417,22 @@ func (t *TaskController) PublisherFinishTask(){
 			if err != nil{
 				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 			} else{
-				task.State = models.Task_Done
-				_,err = models.UpdateTask(task.Id,task)
-				if err == nil{
-					t.Data["json"] = HttpResponseCode{Success:true,Message:"finish the task"}
-				} else{
+				//拿到发布关系，检查用户信息
+				relations,err := models.GetReleaseRelation(user.Id,task.Id)
+				if err != nil{
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+				} else if len(relations) == 0{
+					t.Data["json"] = HttpResponseCode{Success:false,Message:"you are not the publisher of task"}
+				} else{
+					task.State = models.Task_finish
+					_,err = models.UpdateTask(task.Id,task)
+					if err == nil{
+						t.Data["json"] = HttpResponseCode{Success:true,Message:"finish the task"}
+					} else{
+						t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+					}
 				}
+
 			}
 			
 		}
