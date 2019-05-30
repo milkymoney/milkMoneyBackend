@@ -16,14 +16,16 @@ func init(){
 type AcceptRelation struct {
 	Id			int
 	AcceptDate	string
+	ConfirmImages	[]*ConfirmImage	`orm:"reverse(many)"`
 	User		*User	`orm:"rel(fk)"`
 	Task		*Task	`orm:"rel(fk)"`
 }
-
+/*
+发布者任务关系
+*/
 type ReleaseRelation struct{
 	Id				int
 	ReleaseDate		string
-	ConfirmImages	[]*ConfirmImage	`orm:"reverse(many)"`
 	User			*User			`orm:"rel(fk)"`
 	Task			*Task			`orm:"rel(fk)"`
 }
@@ -32,7 +34,7 @@ type ReleaseRelation struct{
 type ConfirmImage struct{
 	Id					int
 	ImagePath			string //保存的实际上应该是文件名，比如xxx.png，访问的时候目前是可以通过静态文件访问，比如域名/image/xxx.png这样子
-	ReleaseRelation		*ReleaseRelation	`orm:"rel(fk)"`
+	AcceptRelation		*AcceptRelation	`orm:"rel(fk)"`
 }
 
 /*业务函数群*/
@@ -41,18 +43,18 @@ type ConfirmImage struct{
 //失败场景：没有找到对应的关系
 func AddImageToSQL(relationId int, image *ConfirmImage) error{
 	o := orm.NewOrm()
-	relation := &ReleaseRelation{Id:relationId}
+	relation := &AcceptRelation{Id:relationId}
 	err := o.Read(relation)
 	if err != nil{
 		return err
 	} 
 
 	//拿到关系，进行加入操作
-	image.ReleaseRelation = relation
+	image.AcceptRelation = relation
 	maxImageNum := 3
 	//检查数量，如果超过则需要删除最早加入的一张
 	var images []*ConfirmImage
-	num,err := o.QueryTable("confirm_image").Filter("release_relation_id",relationId).All(&images)
+	num,err := o.QueryTable("confirm_image").Filter("accept_relation_id",relationId).All(&images)
 	if err != nil{
 		return err
 	}
