@@ -10,15 +10,29 @@ func init(){
 }
 
 
+
+type TaskState string
+
+const(
+	Task_ac_pend 	TaskState = "ac_pending"	//任务正在审核
+	Task_ac_do		TaskState = "ac_doing"		//任务正在进行中
+	Task_ac_check	TaskState = "ac_checking"  //任务发布者检查任务完成情况
+	Task_ac_other	TaskState = "ac_other"		//其他状况
+	Task_rel_pend	TaskState = "rel_pending"	//任务完成
+	Task_rel_do		TaskState = "rel_doing"
+	Task_rel_finish	TaskState = "rel_finishing"
+)
+
 /*接受关系为用户到task的多对多关系，一个用户可以接受多个任务，一个任务也可以被多个用户所接受
 但是实现上为一对一关系，即用户id与任务id绑定，一起组成acId
 原则上一个用户不能够接受*/
 type AcceptRelation struct {
-	Id			int
-	AcceptDate	string
+	Id				int
+	AcceptDate		string
 	ConfirmImages	[]*ConfirmImage	`orm:"reverse(many)"`
-	User		*User	`orm:"rel(fk)"`
-	Task		*Task	`orm:"rel(fk)"`
+	AcTaskState		TaskState
+	User			*User	`orm:"rel(fk)"`
+	Task			*Task	`orm:"rel(fk)"`
 }
 /*
 发布者任务关系
@@ -26,6 +40,7 @@ type AcceptRelation struct {
 type ReleaseRelation struct{
 	Id				int
 	ReleaseDate		string
+	RelTaskState	TaskState
 	User			*User			`orm:"rel(fk)"`
 	Task			*Task			`orm:"rel(fk)"`
 }
@@ -247,6 +262,11 @@ func CreateReleaseRelation(relation *ReleaseRelation) (int,error){
 	return id,nil
 }
 
+func UpdateReleaseRelation(relation *ReleaseRelation) (*ReleaseRelation,error){
+	o := orm.NewOrm()
+	_,err := o.Update(relation)
+	return relation,err
+}
 /*
 函数目的：拿到ReleaseRelation
 调用时机：需要使用userId和taskId拿到relation

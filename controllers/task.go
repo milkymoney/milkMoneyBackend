@@ -424,8 +424,9 @@ func (t *TaskController) PublisherFinishTask(){
 				} else if len(relations) == 0{
 					t.Data["json"] = HttpResponseCode{Success:false,Message:"you are not the publisher of task"}
 				} else{
-					task.State = models.Task_finish
-					_,err = models.UpdateTask(task.Id,task)
+					//同一个任务id只能够确定一个任务
+					relations[0].RelTaskState = models.Task_rel_finish
+					_,err = models.UpdateReleaseRelation(relations[0])
 					if err == nil{
 						t.Data["json"] = HttpResponseCode{Success:true,Message:"finish the task"}
 					} else{

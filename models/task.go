@@ -9,15 +9,6 @@ func init(){
 
 }
 
-type TaskState string
-
-const(
-	Task_pend 	TaskState = "pending"	//任务正在审核
-	Task_do		TaskState = "doing"		//任务正在进行中
-	Task_check	TaskState = "checking"  //任务发布者检查任务完成情况
-	Task_other	TaskState = "other"		//其他状况
-	Task_finish	TaskState = "finished"	//任务完成
-)
 
 //注：原则上，所有的输入数据合法性检查由controller处进行。在models进行的是与模型之间数据关系有关的检查，比如任务的最多接纳人数是否达到上界，等。
 type Task struct{
@@ -28,7 +19,6 @@ type Task struct{
 	Reward			float32		`json:"reward"`
 	Deadline 		string		`json:"deadline"`
 	Label			string		`json:"label"`//原则上不接受label带空格，label与label之间使用空格分隔，标签之间不互斥
-	State			TaskState			`json:"state" orm:"default(0)"`
 	Priority		int32				`json:"priority" orm:"default(0)"`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
 	MaxAccept		int32 				`json:"maxAccept" orm:"default(1)"`//任务同时允许的最大接受人数
 	HasAccept		int32				`json:"hasAccept" orm:"default(0)"`
@@ -133,7 +123,6 @@ func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 	task.Reward = tt.Reward
 	task.Deadline = tt.Deadline
 	task.Label = tt.Label
-	task.State = tt.State
 	task.Priority =  tt.Priority
 	task.MaxAccept = tt.MaxAccept
 	task.AcceptRelation = tt.AcceptRelation
