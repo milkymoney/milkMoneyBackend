@@ -312,14 +312,14 @@ func (t *TaskController) ExecutorSettleupTask(){
 				t.SaveToFile("myfile",path)//保存图片到本地
 
 				//顺利拿到关系
-				releaseRelation,err := models.GetReleaseRelation(user.Id,taskId)
+				acceptRelation,err := models.GetAcceptRelation(user.Id,taskId)
 				if err != nil{//鬼知道什么错误
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-				}else if len(releaseRelation)==0{//没有这个关系，说明没有权限或者任务id错误
+				}else if len(acceptRelation)==0{//没有这个关系，说明没有权限或者任务id错误
 					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Errorf("no release relation between this user and task.").Error()}
 				} else{
 					//成功将图片加入到数据库
-					err = models.AddImageToSQL(releaseRelation[0].Id,&models.ConfirmImage{ImagePath:h.Filename,ReleaseRelation:releaseRelation[0]})
+					err = models.AddImageToSQL(acceptRelation[0].Id,&models.ConfirmImage{ImagePath:h.Filename,AcceptRelation:acceptRelation[0]})
 					if err !=nil{//天晓得什么错误
 						t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 					} else{
@@ -367,7 +367,7 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 			} else{
 				//对于给定任务，访问所有的完成情况
-				relations,err := models.GetReleaseRelation(user.Id,task.Id)
+				relations,err := models.GetAcceptRelation(user.Id,task.Id)
 				if err != nil{
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 				}else{
@@ -375,7 +375,7 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 					var ansSet []*PublisherCheckTaskFinishResponse
 					for _,relation := range relations{
 						//拿到关系对应的用户信息
-						aimUser,_ := models.GetUserThroughRelRelation(relation)
+						aimUser,_ := models.GetUserThroughAcRelation(relation)
 						//拿到关系对应的确认图片信息的路径
 						images,_ := models.GetImagesByRelationId(relation.Id)
 						var imageUrl []string

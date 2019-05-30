@@ -145,7 +145,14 @@ func GetUserThroughRelRelation(relation *ReleaseRelation)	(*User,error){
 	}
 	return relation.User,nil
 }
-
+func GetUserThroughAcRelation(relation *AcceptRelation)	(*User,error){
+	o := orm.NewOrm()
+	//根据relation拿到对应的User
+	if relation.User != nil{
+		o.Read(relation.User)
+	}
+	return relation.User,nil
+}
 /*
 函数目的：创建AcceptRelation
 调用时机：需要将relation加入到数据库中
