@@ -62,8 +62,6 @@ func HasLabel(task *models.Task,label string) bool{
 // @Description get task by taskId
 // @Param	session		header 	string	true		"user's session ,get from login"
 // @Param	page		query 	integer	true		"page value,default is 1"
-// @Param	myrelease	query 	boolean	false		"check release task"
-// @Param	myacceptance	query 	boolean	false		"check accept task"
 // @Param	keyword		query 	string	false		"search by labels"
 // @Success 200 {[object]} models.Task
 // @Failure 403 :taskId is empty
@@ -110,6 +108,77 @@ func (t *TaskController) GetAllTask() {
 	}
 	t.ServeJSON()
 }
+
+// 以下两个为批量查找任务
+
+// @Title 查询自己发布任务列表
+// @Description get task by taskId
+// @Param	session		header 	string	true		"user's session ,get from login"
+// @Param	page		query 	integer	true		"page value,default is 1"
+// @Success 200 {[object]} models.Task
+// @Failure 403 :taskId is empty
+// @router /release [get]
+func (t *TaskController) GetAllTaskRelease() {
+	user,err := Auth(&t.Controller)
+	if err != nil{
+		t.Data["json"] = err.Error()
+	} else{
+		tasks,err := models.GetTaskByUserid(user.Id)
+		if err != nil{
+			t.Data["json"] = err.Error()
+		} else{
+			//根据页数进行返回
+			elementNum := 10
+			page := t.GetString("page")
+			if page == ""{
+				t.Data["json"] = tasks
+			} else{
+				pageNumber,err := strconv.Atoi(page)
+				if err != nil{
+					t.Data["json"] = err
+				} else{
+					t.Data["json"] = tasks[pageNumber*elementNum:(pageNumber+1)*elementNum]
+				}
+			}
+		}
+	}
+	t.ServeJSON()
+}
+
+// @Title 查询自己已接受任务列表
+// @Description get task by taskId
+// @Param	session		header 	string	true		"user's session ,get from login"
+// @Param	page		query 	integer	true		"page value,default is 1"
+// @Success 200 {[object]} models.Task
+// @Failure 403 :taskId is empty
+// @router /acceptance [get]
+func (t *TaskController) GetAllTaskAccept() {
+	user,err := Auth(&t.Controller)
+	if err != nil{
+		t.Data["json"] = err.Error()
+	} else{
+		tasks,err := models.GetAcTaskByUserid(user.Id)
+		if err != nil{
+			t.Data["json"] = err.Error()
+		} else{
+			//根据页数进行返回
+			elementNum := 10
+			page := t.GetString("page")
+			if page == ""{
+				t.Data["json"] = tasks
+			} else{
+				pageNumber,err := strconv.Atoi(page)
+				if err != nil{
+					t.Data["json"] = err
+				} else{
+					t.Data["json"] = tasks[pageNumber*elementNum:(pageNumber+1)*elementNum]
+				}
+			}
+		}
+	}
+	t.ServeJSON()
+}
+
 //创建任务API所需要的返回值
 type CreateTaskReturnCode struct{
 	HttpResponseCode

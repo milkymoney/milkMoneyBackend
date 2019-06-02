@@ -168,6 +168,30 @@ func GetUserThroughAcRelation(relation *AcceptRelation)	(*User,error){
 	}
 	return relation.User,nil
 }
+
+//功能函数，通过User拿到所有接受地任务
+//未经过测试
+func GetAcTaskByUserid(userId int) ([]*Task,error){
+	//确认userId没有问题
+	_,err := GetUser(userId)
+	if err != nil{
+		return nil,err
+	}
+	var relations []*AcceptRelation
+	o := orm.NewOrm()
+	if num,err := o.QueryTable("accept_relation").Filter("user_id",userId).All(&relations); err != nil || num == 0{
+		return nil,fmt.Errorf("User don't have accept relation or have other problem.")
+	} else{
+		//根据拿到的relations读取tasks
+		var tasks []*Task
+		for i := 0 ; i < len(relations) ;i++{
+			o.Read(relations[i].Task)
+			tasks = append(tasks,relations[i].Task)
+		}
+		return tasks,nil
+	}
+
+}
 /*
 函数目的：创建AcceptRelation
 调用时机：需要将relation加入到数据库中
