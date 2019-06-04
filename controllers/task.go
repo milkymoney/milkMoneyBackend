@@ -98,10 +98,20 @@ func (t *TaskController) GetAllTask() {
 				t.Data["json"] = tasks
 			} else{
 				pageNumber,err := strconv.Atoi(page)
-				if err != nil{
-					t.Data["json"] = err
+				beginNum := pageNumber*elementNum
+				endNum := (pageNumber+1)*elementNum
+				if beginNum > len(tasks){
+					t.Data["json"] = []*models.Task{}
 				} else{
-					t.Data["json"] = tasks[pageNumber*elementNum:(pageNumber+1)*elementNum]
+					if endNum > len(tasks){
+						endNum = len(tasks)
+					}
+						
+					if err != nil{
+						t.Data["json"] = err
+					} else{
+						t.Data["json"] = tasks[beginNum:endNum]
+					}
 				}
 			}
 		}
@@ -134,10 +144,20 @@ func (t *TaskController) GetAllTaskRelease() {
 				t.Data["json"] = tasks
 			} else{
 				pageNumber,err := strconv.Atoi(page)
-				if err != nil{
-					t.Data["json"] = err
+				beginNum := pageNumber*elementNum
+				endNum := (pageNumber+1)*elementNum
+				if beginNum > len(tasks){
+					t.Data["json"] = []*models.Task{}
 				} else{
-					t.Data["json"] = tasks[pageNumber*elementNum:(pageNumber+1)*elementNum]
+					if endNum > len(tasks){
+						endNum = len(tasks)
+					}
+						
+					if err != nil{
+						t.Data["json"] = err
+					} else{
+						t.Data["json"] = tasks[beginNum:endNum]
+					}
 				}
 			}
 		}
@@ -168,10 +188,20 @@ func (t *TaskController) GetAllTaskAccept() {
 				t.Data["json"] = tasks
 			} else{
 				pageNumber,err := strconv.Atoi(page)
-				if err != nil{
-					t.Data["json"] = err
+				beginNum := pageNumber*elementNum
+				endNum := (pageNumber+1)*elementNum
+				if beginNum > len(tasks){
+					t.Data["json"] = []*models.Task{}
 				} else{
-					t.Data["json"] = tasks[pageNumber*elementNum:(pageNumber+1)*elementNum]
+					if endNum > len(tasks){
+						endNum = len(tasks)
+					}
+						
+					if err != nil{
+						t.Data["json"] = err
+					} else{
+						t.Data["json"] = tasks[beginNum:endNum]
+					}
 				}
 			}
 		}
