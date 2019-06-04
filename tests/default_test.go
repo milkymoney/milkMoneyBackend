@@ -10,6 +10,7 @@ import (
 
 	"github.com/astaxie/beego"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/astaxie/beego/logs"
 )
 
 func init() {
@@ -20,11 +21,11 @@ func init() {
 
 // TestGet is a sample to run an endpoint test
 func TestGet(t *testing.T) {
-	r, _ := http.NewRequest("GET", "/v1/object", nil)
+	r, _ := http.NewRequest("GET", "/v1/task/?userId=2", nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, r)
 
-	beego.Trace("testing", "TestGet", "Code[%d]\n%s", w.Code, w.Body.String())
+	logs.Trace("testing", "TestGet", "Code[%d]\n%s", w.Code, w.Body.String())
 
 	Convey("Subject: Test Station Endpoint\n", t, func() {
 	        Convey("Status Code Should Be 200", func() {
