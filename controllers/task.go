@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"time"
 )
 
 
@@ -233,6 +234,8 @@ func (t *TaskController) Post() {
 		task.Userid = user.Id
 		fmt.Println(task)
 		tId,err := models.AddTask(&task)
+		//发布任务，创建发布关系
+		_,err = models.CreateNewReRelById(user.Id,tId,time.Now().Format("2006-01-02 15:04:05"))
 		if err == nil{
 			t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:"success",Success:true},TaskId:tId}
 		} else{
@@ -329,7 +332,7 @@ func (t *TaskController) AcceptTask(){
 		if err != nil{
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}else{
-			_,err = models.CreateNewAcRelById(user.Id,taskId,"20190513")//暂时还没有加上时间
+			_,err = models.CreateNewAcRelById(user.Id,taskId,time.Now().Format("2006-01-02 15:04:05"))//暂时还没有加上时间
 			if err == nil{
 				t.Data["json"] = HttpResponseCode{Success:true,Message:"accept success"}
 			} else{
