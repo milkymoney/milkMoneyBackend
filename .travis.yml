@@ -2,10 +2,6 @@ language: go
 
 go:
 - 1.11.x
-- master
- 
-install:
-  - echo "install"
- 
-script:
-  - echo "script"
+
+git:
+  depth: 1
