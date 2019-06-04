@@ -39,18 +39,6 @@
                     },
                     {
                         "in": "query",
-                        "name": "myrelease",
-                        "description": "check release task",
-                        "type": "boolean"
-                    },
-                    {
-                        "in": "query",
-                        "name": "myacceptance",
-                        "description": "check accept task",
-                        "type": "boolean"
-                    },
-                    {
-                        "in": "query",
                         "name": "keyword",
                         "description": "search by labels",
                         "type": "string"
@@ -61,7 +49,7 @@
                         "description": "{[object]} models.Task"
                     },
                     "403": {
-                        "description": ":taskid is empty"
+                        "description": ":taskId is empty"
                     }
                 }
             },
@@ -98,6 +86,39 @@
                     },
                     "403": {
                         "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/task/acceptance": {
+            "get": {
+                "tags": [
+                    "task"
+                ],
+                "description": "get task by taskId",
+                "operationId": "TaskController.查询自己已接受任务列表",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "page value,default is 1",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{[object]} models.Task"
+                    },
+                    "403": {
+                        "description": ":taskId is empty"
                     }
                 }
             }
@@ -168,7 +189,74 @@
                 }
             }
         },
+        "/task/release": {
+            "get": {
+                "tags": [
+                    "task"
+                ],
+                "description": "get task by taskId",
+                "operationId": "TaskController.查询自己发布任务列表",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "page value,default is 1",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{[object]} models.Task"
+                    },
+                    "403": {
+                        "description": ":taskId is empty"
+                    }
+                }
+            }
+        },
         "/task/settleup/{taskId}": {
+            "get": {
+                "tags": [
+                    "task"
+                ],
+                "description": "接受者完成任务的信息以及证明只有发布者和接受者自身才能看见",
+                "operationId": "TaskController.接受者查询自己已完成任务的信息",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "description": "任务id",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.HttpResponseCode"
+                        }
+                    },
+                    "403": {
+                        "description": "{object} controllers.HttpResponseCode"
+                    }
+                }
+            },
             "post": {
                 "tags": [
                     "task"
@@ -197,42 +285,6 @@
                         "schema": {
                             "$ref": "#/definitions/binary"
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.HttpResponseCode"
-                        }
-                    },
-                    "403": {
-                        "description": "{object} controllers.HttpResponseCode"
-                    }
-                }
-            }
-        },
-        "/task/settleup/{taskid}": {
-            "get": {
-                "tags": [
-                    "task"
-                ],
-                "description": "接受者完成任务的信息以及证明只有发布者和接受者自身才能看见",
-                "operationId": "TaskController.接受者查询自己已完成任务的信息",
-                "parameters": [
-                    {
-                        "in": "header",
-                        "name": "session",
-                        "description": "user's session ,get from login",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "path",
-                        "name": "taskId",
-                        "description": "任务id",
-                        "required": true,
-                        "type": "integer"
                     }
                 ],
                 "responses": {
@@ -308,7 +360,7 @@
                         }
                     },
                     "403": {
-                        "description": ":taskid is empty"
+                        "description": ":taskId is empty"
                     }
                 }
             },
@@ -351,7 +403,7 @@
                         }
                     },
                     "403": {
-                        "description": ":taskid is not int"
+                        "description": ":taskId is not int"
                     }
                 }
             },
@@ -372,7 +424,7 @@
                     {
                         "in": "path",
                         "name": "taskId",
-                        "description": "The taskid you want to delete",
+                        "description": "The taskId you want to delete",
                         "required": true,
                         "type": "integer"
                     }
@@ -385,7 +437,7 @@
                         }
                     },
                     "403": {
-                        "description": "taskid is empty"
+                        "description": "taskId is empty"
                     }
                 }
             }
@@ -599,8 +651,17 @@
             "title": "AcceptRelation",
             "type": "object",
             "properties": {
+                "AcTaskState": {
+                    "$ref": "#/definitions/models.TaskState"
+                },
                 "AcceptDate": {
                     "type": "string"
+                },
+                "ConfirmImages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ConfirmImage"
+                    }
                 },
                 "Id": {
                     "type": "integer",
@@ -618,15 +679,15 @@
             "title": "ConfirmImage",
             "type": "object",
             "properties": {
+                "AcceptRelation": {
+                    "$ref": "#/definitions/models.AcceptRelation"
+                },
                 "Id": {
                     "type": "integer",
                     "format": "int64"
                 },
                 "ImagePath": {
                     "type": "string"
-                },
-                "ReleaseRelation": {
-                    "$ref": "#/definitions/models.ReleaseRelation"
                 }
             }
         },
@@ -634,15 +695,12 @@
             "title": "ReleaseRelation",
             "type": "object",
             "properties": {
-                "ConfirmImages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ConfirmImage"
-                    }
-                },
                 "Id": {
                     "type": "integer",
                     "format": "int64"
+                },
+                "RelTaskState": {
+                    "$ref": "#/definitions/models.TaskState"
                 },
                 "ReleaseDate": {
                     "type": "string"
@@ -696,9 +754,6 @@
                     "type": "number",
                     "format": "float"
                 },
-                "state": {
-                    "$ref": "#/definitions/models.TaskState"
-                },
                 "tid": {
                     "type": "integer",
                     "format": "int64"
@@ -714,15 +769,17 @@
         },
         "models.TaskState": {
             "title": "TaskState",
-            "format": "int32",
-            "type": "integer",
+            "type": "string",
             "enum": [
-                "Task_Open = 0",
-                "Task_Close = 1",
-                "Task_Done = 2",
-                "Task_Delete = 3"
+                "Task_ac_pend = \"ac_pending\"",
+                "Task_ac_do = \"ac_doing\"",
+                "Task_ac_check = \"ac_checking\"",
+                "Task_ac_other = \"ac_other\"",
+                "Task_rel_pend = \"rel_pending\"",
+                "Task_rel_do = \"rel_doing\"",
+                "Task_rel_finish = \"rel_finishing\""
             ],
-            "example": 0
+            "example": "ac_pending"
         },
         "models.User": {
             "title": "User",

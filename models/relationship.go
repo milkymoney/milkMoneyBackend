@@ -97,14 +97,16 @@ func AddImageToSQL(relationId int, image *ConfirmImage) error{
 func GetImagesByRelationId(relationId int) ([]*ConfirmImage,error){
 	o := orm.NewOrm()
 	var images []*ConfirmImage
-	_,err := o.QueryTable("confirm_image").Filter("release_relation_id",relationId).All(&images)
+	_,err := o.QueryTable("confirm_image").Filter("accept_relation_id",relationId).All(&images)
 	return images,err
 }
 //根据用户id和任务id拿到图片数组
 func GetImagesByUserAndTaskId(userId,taskId int) ([]*ConfirmImage,error){
-	relations,err := GetReleaseRelation(userId,taskId)
+	relations,err := GetAcceptRelation(userId,taskId)
 	if err!=nil{
 		return nil,err
+	} else if len(relations)==0{
+		return nil,fmt.Errorf("No relation of this user and task.")
 	}
 	images,err := GetImagesByRelationId(relations[0].Id)
 	return images,err

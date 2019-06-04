@@ -22,10 +22,11 @@ func init() {
 }
 
 // TestGet is a sample to run an endpoint test
-func TestGet(t *testing.T) {
+func TestGetAllTask(t *testing.T) {
 	r, _ := http.NewRequest("GET", "/v1/task/?userId=2", nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, r)
+
 	var tasks []models.Task
 	readBuf,_ := ioutil.ReadAll(w.Body)
 	json.Unmarshal(readBuf, &tasks)
@@ -33,6 +34,7 @@ func TestGet(t *testing.T) {
 	logs.Trace(tasks)
 	logs.Trace(tasks[0].Id)
 	logs.Trace(tasks[0].Userid)
+
 	Convey("Subject: Test Station Endpoint\n", t, func() {
 	        Convey("Status Code Should Be 200", func() {
 	                So(w.Code, ShouldEqual, 200)
