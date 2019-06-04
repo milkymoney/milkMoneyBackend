@@ -332,11 +332,23 @@ func (t *TaskController) AcceptTask(){
 		if err != nil{
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}else{
-			_,err = models.CreateNewAcRelById(user.Id,taskId,time.Now().Format("2006-01-02 15:04:05"))//暂时还没有加上时间
-			if err == nil{
-				t.Data["json"] = HttpResponseCode{Success:true,Message:"accept success"}
-			} else{
+			task,err := models.GetTaskById(taskId)
+			if err != nil{
 				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+			}else{
+				if task.MaxAccept > task.HasAccept{
+					_,err = models.CreateNewAcRelById(user.Id,taskId,time.Now().Format("2006-01-02 15:04:05"))//暂时还没有加上时间
+					if err == nil{
+						t.Data["json"] = HttpResponseCode{Success:true,Message:"accept success"}
+						task.HasAccept += 1
+						_,_ = models.UpdateTask(task.Id,task)
+					} else{
+						t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+					}
+				} else{
+					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Errorf("Enough people accept the task.").Error()}
+				}
+
 			}
 		}
 	}

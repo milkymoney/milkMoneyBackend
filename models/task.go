@@ -125,8 +125,7 @@ func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 	task.Label = tt.Label
 	task.Priority =  tt.Priority
 	task.MaxAccept = tt.MaxAccept
-	task.AcceptRelation = tt.AcceptRelation
-	task.ReleaseRelation = tt.ReleaseRelation
+	task.HasAccept = tt.HasAccept
 	_,err = o.Update(task)
 	if err == nil{
 		return
