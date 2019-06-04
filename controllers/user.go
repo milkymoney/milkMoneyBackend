@@ -17,17 +17,29 @@ type UserController struct {
 	根据session返回session中openid对应的用户指针，或者错误
 */
 func Auth(u *beego.Controller) (*models.User,error){
-	session := u.Ctx.Input.CruSession
-	if val := session.Get("openid"); val != nil {
-		user,err := models.GetUserByOpenId(val.(string))
+	var runmode = beego.AppConfig.String("runmode")
+	if runmode == "test"{
+		userId,err := u.GetInt("userId")
 		if err != nil{
 			return nil,err
-		}else{
-			return user,nil
+		} else{
+			user,err := models.GetUserById(userId)
+			return user,err
 		}
-	} else {
-		return nil,fmt.Errorf("need login")
+	} else{
+		session := u.Ctx.Input.CruSession
+		if val := session.Get("openid"); val != nil {
+			user,err := models.GetUserByOpenId(val.(string))
+			if err != nil{
+				return nil,err
+			}else{
+				return user,nil
+			}
+		} else {
+			return nil,fmt.Errorf("need login")
+		}
 	}
+
 
 }
 
