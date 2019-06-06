@@ -118,6 +118,7 @@ func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 	if err != nil{
 		return nil,err
 	}
+	task.Userid = tt.Userid
 	task.Type = tt.Type
 	task.Description = tt.Description 
 	task.Reward = tt.Reward

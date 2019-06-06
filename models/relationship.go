@@ -171,6 +171,28 @@ func GetUserThroughAcRelation(relation *AcceptRelation)	(*User,error){
 	return relation.User,nil
 }
 
+//拿去任务状态
+func GetAcTaskStateThroughTask(task *Task) (TaskState,error){
+	o := orm.NewOrm()
+	var relation *AcceptRelation
+	err := o.QueryTable("accept_relation").Filter("task_id",task.Id).One(relation)
+	if err != nil{
+		return "",err
+	}else{
+		return relation.AcTaskState,nil
+	}
+}
+func GetReTaskStateThroughTask(task *Task) (TaskState,error){
+	o := orm.NewOrm()
+	var relation *ReleaseRelation
+	err := o.QueryTable("release_relation").Filter("task_id",task.Id).One(relation)
+	if err != nil{
+		return "",err
+	}else{
+		return relation.RelTaskState,nil
+	}
+}
+
 //功能函数，通过User拿到所有接受地任务
 //未经过测试
 func GetAcTaskByUserid(userId int) ([]*Task,error){
