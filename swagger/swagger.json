@@ -21,7 +21,7 @@
                     "task"
                 ],
                 "description": "get task by taskId",
-                "operationId": "TaskController.查询已发布任务列表",
+                "operationId": "TaskController.查询当前所有未结束的任务",
                 "parameters": [
                     {
                         "in": "header",
@@ -42,6 +42,39 @@
                         "name": "keyword",
                         "description": "search by labels",
                         "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{[object]} models.Task"
+                    },
+                    "403": {
+                        "description": ":taskId is empty"
+                    }
+                }
+            }
+        },
+        "/task/publisher": {
+            "get": {
+                "tags": [
+                    "task"
+                ],
+                "description": "get task by taskId",
+                "operationId": "TaskController.查询自己发布任务列表",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "page value,default is 1",
+                        "required": true,
+                        "type": "integer"
                     }
                 ],
                 "responses": {
@@ -90,40 +123,7 @@
                 }
             }
         },
-        "/task/acceptance": {
-            "get": {
-                "tags": [
-                    "task"
-                ],
-                "description": "get task by taskId",
-                "operationId": "TaskController.查询自己已接受任务列表",
-                "parameters": [
-                    {
-                        "in": "header",
-                        "name": "session",
-                        "description": "user's session ,get from login",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "page",
-                        "description": "page value,default is 1",
-                        "required": true,
-                        "type": "integer"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{[object]} models.Task"
-                    },
-                    "403": {
-                        "description": ":taskId is empty"
-                    }
-                }
-            }
-        },
-        "/task/confirm/{taskId}": {
+        "/task/publisher/confirm/{taskId}": {
             "get": {
                 "tags": [
                     "task"
@@ -174,116 +174,14 @@
                         "description": "任务id",
                         "required": true,
                         "type": "integer"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.HttpResponseCode"
-                        }
-                    },
-                    "403": {
-                        "description": "{object} controllers.HttpResponseCode"
-                    }
-                }
-            }
-        },
-        "/task/release": {
-            "get": {
-                "tags": [
-                    "task"
-                ],
-                "description": "get task by taskId",
-                "operationId": "TaskController.查询自己发布任务列表",
-                "parameters": [
-                    {
-                        "in": "header",
-                        "name": "session",
-                        "description": "user's session ,get from login",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "page",
-                        "description": "page value,default is 1",
-                        "required": true,
-                        "type": "integer"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{[object]} models.Task"
-                    },
-                    "403": {
-                        "description": ":taskId is empty"
-                    }
-                }
-            }
-        },
-        "/task/settleup/{taskId}": {
-            "get": {
-                "tags": [
-                    "task"
-                ],
-                "description": "接受者完成任务的信息以及证明只有发布者和接受者自身才能看见",
-                "operationId": "TaskController.接受者查询自己已完成任务的信息",
-                "parameters": [
-                    {
-                        "in": "header",
-                        "name": "session",
-                        "description": "user's session ,get from login",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "path",
-                        "name": "taskId",
-                        "description": "任务id",
-                        "required": true,
-                        "type": "integer"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.HttpResponseCode"
-                        }
-                    },
-                    "403": {
-                        "description": "{object} controllers.HttpResponseCode"
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "task"
-                ],
-                "operationId": "TaskController.任务接受者结算任务",
-                "parameters": [
-                    {
-                        "in": "header",
-                        "name": "session",
-                        "description": "user's session ,get from login",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "path",
-                        "name": "taskId",
-                        "description": "任务id",
-                        "required": true,
-                        "type": "integer"
                     },
                     {
                         "in": "body",
-                        "name": "graph",
-                        "description": "图片，使用myfile:xxx传输",
+                        "name": "body",
+                        "description": "main data is the user",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/binary"
+                            "$ref": "#/definitions/PublisherConfirmTaskData"
                         }
                     }
                 ],
@@ -300,49 +198,13 @@
                 }
             }
         },
-        "/task/task/accept/{taskId}": {
-            "post": {
-                "tags": [
-                    "task"
-                ],
-                "description": "user accept the task",
-                "operationId": "TaskController.接受任务",
-                "parameters": [
-                    {
-                        "in": "header",
-                        "name": "session",
-                        "description": "user's session ,get from login",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "path",
-                        "name": "taskId",
-                        "description": "任务id",
-                        "required": true,
-                        "type": "integer"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.HttpResponseCode"
-                        }
-                    },
-                    "403": {
-                        "description": "{object} controllers.HttpResponseCode"
-                    }
-                }
-            }
-        },
-        "/task/{taskId}": {
+        "/task/publisher/{taskId}": {
             "get": {
                 "tags": [
                     "task"
                 ],
                 "description": "get task by taskId",
-                "operationId": "TaskController.查询指定id的任务",
+                "operationId": "TaskController.查询自己已经发布的指定id的任务",
                 "parameters": [
                     {
                         "in": "path",
@@ -438,6 +300,186 @@
                     },
                     "403": {
                         "description": "taskId is empty"
+                    }
+                }
+            }
+        },
+        "/task/recipient": {
+            "get": {
+                "tags": [
+                    "task"
+                ],
+                "description": "get task by taskId",
+                "operationId": "TaskController.查询自己已接受任务列表",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "description": "page value,default is 1",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "query",
+                        "name": "keyword",
+                        "description": "search by labels",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{[object]} models.Task"
+                    },
+                    "403": {
+                        "description": ":taskId is empty"
+                    }
+                }
+            }
+        },
+        "/task/recipient/settleup/{taskId}": {
+            "get": {
+                "tags": [
+                    "task"
+                ],
+                "description": "接受者完成任务的信息以及证明只有发布者和接受者自身才能看见",
+                "operationId": "TaskController.接受者查询自己已完成任务的信息",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "description": "任务id",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.HttpResponseCode"
+                        }
+                    },
+                    "403": {
+                        "description": "{object} controllers.HttpResponseCode"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "task"
+                ],
+                "operationId": "TaskController.任务接受者结算任务",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "description": "任务id",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "body",
+                        "name": "graph",
+                        "description": "图片，使用myfile:xxx传输",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/binary"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.HttpResponseCode"
+                        }
+                    },
+                    "403": {
+                        "description": "{object} controllers.HttpResponseCode"
+                    }
+                }
+            }
+        },
+        "/task/recipient/{taskId}": {
+            "get": {
+                "tags": [
+                    "task"
+                ],
+                "description": "get task by taskId",
+                "operationId": "TaskController.查询指定id的任务",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "description": "the key",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Task"
+                        }
+                    },
+                    "403": {
+                        "description": ":taskId is empty"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "task"
+                ],
+                "description": "user accept the task",
+                "operationId": "TaskController.接受任务",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "user's session ,get from login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "taskId",
+                        "description": "任务id",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.HttpResponseCode"
+                        }
+                    },
+                    "403": {
+                        "description": "{object} controllers.HttpResponseCode"
                     }
                 }
             }
@@ -615,6 +657,10 @@
         }
     },
     "definitions": {
+        "PublisherConfirmTaskData": {
+            "title": "PublisherConfirmTaskData",
+            "type": "object"
+        },
         "binary": {
             "title": "binary",
             "type": "object"
@@ -774,7 +820,7 @@
                 "Task_ac_pend = \"ac_pending\"",
                 "Task_ac_do = \"ac_doing\"",
                 "Task_ac_check = \"ac_checking\"",
-                "Task_ac_other = \"ac_other\"",
+                "Task_ac_finish = \"ac_finish\"",
                 "Task_rel_pend = \"rel_pending\"",
                 "Task_rel_do = \"rel_doing\"",
                 "Task_rel_finish = \"rel_finishing\""

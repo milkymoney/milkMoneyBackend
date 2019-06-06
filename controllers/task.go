@@ -487,7 +487,6 @@ func (t *TaskController) PublisherConfirmTask(){
 			acRelation[0].AcTaskState = models.Task_ac_finish
 			_,_ = models.UpdateAcceptRelation(acRelation[0])
 		}
-
 	}
 	t.Data["json"] = HttpResponseCode{Success:true,Message:"string"}
 	t.ServeJSON()

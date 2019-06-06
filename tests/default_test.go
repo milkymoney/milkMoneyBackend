@@ -32,9 +32,10 @@ func TestGetAllTask(t *testing.T) {
 	json.Unmarshal(readBuf, &tasks)
 	logs.Trace("testing", "TestGet", "Code[%d]\n%s", w.Code, w.Body.String())
 	logs.Trace(tasks)
+	/*
 	logs.Trace(tasks[0].Id)
 	logs.Trace(tasks[0].Userid)
-
+*/
 	Convey("Subject: Test Station Endpoint\n", t, func() {
 	        Convey("Status Code Should Be 200", func() {
 	                So(w.Code, ShouldEqual, 200)
