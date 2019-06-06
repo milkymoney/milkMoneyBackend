@@ -57,22 +57,32 @@ func HasLabel(task *models.Task,label string) bool{
 	return true
 }
 
-func GetUnfinishedTask(tasks []*models.Task) ([]*models.Task,error){
+func GetUnfinishedTask(user *models.User,tasks []*models.Task) ([]*models.Task,error){
+
 	for i:=0;i<len(tasks);i++{
-		acState,err := models.GetAcTaskStateThroughTask(tasks[i])
-		if err != nil{
-			return nil,err
-		}
+		acState,err := models.GetAcTaskStateThroughTask(user,tasks[i])
+		if err == nil{
+			if acState == models.Task_ac_finish {
+				//删除不能够显示的任务
+				fmt.Println("delete task")
+				fmt.Println(acState)
+				tasks[i] = tasks[len(tasks)-1]
+				tasks = tasks[:len(tasks)-1]
+				i--
+			}
+		} 
 		reState,err := models.GetReTaskStateThroughTask(tasks[i])
-		if err != nil{
-			return nil,err
+		if err == nil{
+			if  reState==models.Task_rel_pend || reState==models.Task_rel_finish{
+				//删除不能够显示的任务
+				fmt.Println("delete task")
+				fmt.Println(reState)
+				tasks[i] = tasks[len(tasks)-1]
+				tasks = tasks[:len(tasks)-1]
+				i--
+			}
 		}
-		if acState==models.Task_ac_check || acState==models.Task_rel_pend || acState==models.Task_rel_finish || reState==models.Task_ac_check || reState==models.Task_rel_pend || reState==models.Task_rel_finish{
-			//删除不能够显示的任务
-			tasks[i] = tasks[len(tasks)-1]
-			tasks = tasks[:len(tasks)-1]
-			i--
-		}
+
 	}
 	return tasks,nil
 }
@@ -94,14 +104,14 @@ func (t *TaskController) GetAllTask() {
 		t.ServeJSON()
 		return
 	}
-	tasks,err := models.GetTaskByUserid(user.Id)
+	tasks,err := models.GetAllTaskByUserid(user.Id)
 	if err != nil{
 		t.Data["json"] = err.Error()
 		t.ServeJSON()
 		return
 	} 
 	//筛选，去除已经完成的任务
-	tasks,err = GetUnfinishedTask(tasks)
+	tasks,err = GetUnfinishedTask(user,tasks)
 	if err != nil{
 		t.Data["json"] = err.Error()
 		t.ServeJSON()
@@ -218,7 +228,6 @@ type CreateTaskReturnCode struct{
 // @Failure 403 body is empty
 // @router /publisher [post]
 func (t *TaskController) PublishTask() {
-	fmt.Println("Create Task")
 	var task models.Task
 	json.Unmarshal(t.Ctx.Input.RequestBody, &task)
 	user,err := Auth(&t.Controller)
@@ -229,7 +238,6 @@ func (t *TaskController) PublishTask() {
 	}
 
 	task.Userid = user.Id
-	fmt.Println(task)
 	tId,err := models.AddTask(&task)
 	//发布任务，创建发布关系
 	_,err = models.CreateNewReRelById(user.Id,tId,time.Now().Format("2006-01-02 15:04:05"))
@@ -266,11 +274,23 @@ func (t *TaskController) GetPublishTask() {
 	task, err := models.GetTask(taskId)
 	if err != nil {
 		t.Data["json"] = err.Error()
-	} else if task.Userid != user.Id{
-		t.Data["json"] = fmt.Sprintf("task %d publish by user %dy, but not publish by user %d",task.Id,task.Userid,user.Id)
-	}else{
-		t.Data["json"] = task
+		t.ServeJSON()
+		return
 	}
+
+	//检验user与任务发布者的关系
+	relations,err := models.GetReleaseRelation(user.Id,taskId)
+	if err != nil{
+		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	} else if len(relations)!=1{
+		t.Data["json"] = fmt.Sprintf("Release Relation of user %d and task %d are multiple",user.Id,task.Id)
+		t.ServeJSON()
+		return	
+	}
+	
+	t.Data["json"] = task
 
 	t.ServeJSON()
 }

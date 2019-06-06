@@ -52,6 +52,28 @@ type ConfirmImage struct{
 	AcceptRelation		*AcceptRelation	`orm:"rel(fk)"`
 }
 
+//通过用户id拿去用户发布和接收的所有任务
+func GetAllTaskByUserid(userId int) ([]*Task,error){
+	var acRelations []*AcceptRelation
+	var reRelations []*ReleaseRelation
+	o := orm.NewOrm()
+	_,err := o.QueryTable("accept_relation").Filter("user_id",userId).All(&acRelations)
+	if err != nil{
+		return nil,err
+	}
+	_,err = o.QueryTable("release_relation").Filter("user_id",userId).All(&reRelations)
+	if err != nil{
+		return nil,err
+	}
+	//将拿到的关系中的id用来
+	var tasks []*Task
+	for _,relation := range(acRelations){
+		o.Read(relation.Task)
+		tasks = append(tasks,relation.Task)
+	}
+	return tasks,nil
+}
+
 /*业务函数群*/
 
 //向图片数组中添加一张图片。如果已经有n张图片，删除最早加入的一张（id最小的一张）。
@@ -172,10 +194,10 @@ func GetUserThroughAcRelation(relation *AcceptRelation)	(*User,error){
 }
 
 //拿去任务状态
-func GetAcTaskStateThroughTask(task *Task) (TaskState,error){
+func GetAcTaskStateThroughTask(user *User,task *Task) (TaskState,error){
 	o := orm.NewOrm()
-	var relation *AcceptRelation
-	err := o.QueryTable("accept_relation").Filter("task_id",task.Id).One(relation)
+	var relation AcceptRelation
+	err := o.QueryTable("accept_relation").Filter("task_id",task.Id).Filter("user_id",user.Id).One(&relation)
 	if err != nil{
 		return "",err
 	}else{
@@ -184,8 +206,8 @@ func GetAcTaskStateThroughTask(task *Task) (TaskState,error){
 }
 func GetReTaskStateThroughTask(task *Task) (TaskState,error){
 	o := orm.NewOrm()
-	var relation *ReleaseRelation
-	err := o.QueryTable("release_relation").Filter("task_id",task.Id).One(relation)
+	var relation ReleaseRelation
+	err := o.QueryTable("release_relation").Filter("task_id",task.Id).One(&relation)
 	if err != nil{
 		return "",err
 	}else{
