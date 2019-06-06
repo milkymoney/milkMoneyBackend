@@ -385,13 +385,75 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 	t.ServeJSON()
 }
 
+//发布者结算任务专用对象
+type PublisherConfirmTaskData struct{
+	Confirm		bool	`json:"confirm"`
+	Users 		[]int	`json:"users"`
+}
+
 // @Title 发布者结算任务
 // @Param	session		header 	string	true		"user's session ,get from login"
 // @Param	taskId		path 	integer	true		"任务id"
+// @Param	body		body 	PublisherConfirmTaskData	true		"main data is the user"
 // @Success 200 {object} controllers.HttpResponseCode
 // @Failure 403 {object} controllers.HttpResponseCode
 // @router /publisher/confirm/:taskId [post]
-func (t *TaskController) PublisherFinishTask(){
+func (t *TaskController) PublisherConfirmTask(){
+	user,err := Auth(&t.Controller)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	} 
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	}
+		//拿到了任务id，现在拿到任务，并返回数组
+	task,err := models.GetTask(taskId)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	} 
+	//拿到发布关系，检查用户信息
+	relations,err := models.GetReleaseRelation(user.Id,task.Id)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	} else if len(relations) != 0{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:"you are not the publisher of task"}
+		t.ServeJSON()
+		return
+	}
+
+	//拿到同意的user列表
+	var data PublisherConfirmTaskData
+	json.Unmarshal(t.Ctx.Input.RequestBody, &data)
+	if len(data.Users) == 0{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("Strange, you don't confirm any user.")}
+		t.ServeJSON()
+		return
+	}
+	//同一个任务id只能够确定一个任务
+	for _,userId := range data.Users{
+		acRelation,err := models.GetAcceptRelation(userId,task.Id)
+		if err != nil{
+			acRelation[0].AcTaskState = models.Task_ac_finish
+			_,_ = models.UpdateAcceptRelation(acRelation[0])
+		}
+
+	}
+	t.Data["json"] = HttpResponseCode{Success:true,Message:"string"}
+	t.ServeJSON()
+}
+
+/*
+func (t *TaskController) PublisherConfirmTask(){
 	user,err := Auth(&t.Controller)
 	fmt.Println(user)
 	if err != nil{
@@ -430,6 +492,7 @@ func (t *TaskController) PublisherFinishTask(){
 	}
 	t.ServeJSON()
 }
+*/
 
 // @Title 查询自己已接受任务列表
 // @Description get task by taskId

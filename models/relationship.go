@@ -17,7 +17,7 @@ const(
 	Task_ac_pend 	TaskState = "ac_pending"	//任务正在审核
 	Task_ac_do		TaskState = "ac_doing"		//任务正在进行中
 	Task_ac_check	TaskState = "ac_checking"  //任务发布者检查任务完成情况
-	Task_ac_other	TaskState = "ac_other"		//其他状况
+	Task_ac_finish	TaskState = "ac_finish"		//其他状况
 	Task_rel_pend	TaskState = "rel_pending"	//任务完成
 	Task_rel_do		TaskState = "rel_doing"
 	Task_rel_finish	TaskState = "rel_finishing"
@@ -259,6 +259,11 @@ func GetAcceptRelation(userId,taskId int) (relation []*AcceptRelation,err error)
 
 }
 
+func UpdateAcceptRelation(relation *AcceptRelation) (*AcceptRelation,error){
+	o := orm.NewOrm()
+	_,err := o.Update(relation)
+	return relation,err
+}
 
 
 /*
