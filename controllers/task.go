@@ -91,57 +91,64 @@ func (t *TaskController) GetAllTask() {
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = err.Error()
-	} else{
-		tasks,err := models.GetTaskByUserid(user.Id)
-		if err != nil{
-			t.Data["json"] = err.Error()
-		} else{
-			tasks,err = GetUnfinishedTask(tasks)
-			if err != nil{
-				t.Data["json"] = err.Error()
-			} else{
-				labels := t.GetString("keyword")
-				//依据label进行筛选
-				if labels != ""{
-					num := len(tasks)
-					for i:=0;i<num;i++{
-						//如果任务不包含标签
-						if(!HasLabel(tasks[i],labels)){
-							//将该元素与最后一个交换，删除最后一个元素
-							tasks[i] = tasks[num-1]
-							tasks = tasks[:num-1]
-							num--
-							i--
-						}
-					}
-				}
-				
-				//根据页数进行返回
-				elementNum := 10
-				page := t.GetString("page")
-				if page == ""{
-					t.Data["json"] = tasks
-				} else{
-					pageNumber,err := strconv.Atoi(page)
-					beginNum := pageNumber*elementNum
-					endNum := (pageNumber+1)*elementNum
-					if beginNum > len(tasks){
-						t.Data["json"] = []*models.Task{}
-					} else{
-						if endNum > len(tasks){
-							endNum = len(tasks)
-						}
-							
-						if err != nil{
-							t.Data["json"] = err.Error()
-						} else{
-							t.Data["json"] = tasks[beginNum:endNum]
-						}
-					}
-				}
+		t.ServeJSON()
+		return
+	}
+	tasks,err := models.GetTaskByUserid(user.Id)
+	if err != nil{
+		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	} 
+	//筛选，去除已经完成的任务
+	tasks,err = GetUnfinishedTask(tasks)
+	if err != nil{
+		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	}
+
+	labels := t.GetString("keyword")
+	//依据label进行筛选
+	if labels != ""{
+		num := len(tasks)
+		for i:=0;i<num;i++{
+			//如果任务不包含标签
+			if(!HasLabel(tasks[i],labels)){
+				//将该元素与最后一个交换，删除最后一个元素
+				tasks[i] = tasks[num-1]
+				tasks = tasks[:num-1]
+				num--
+				i--
 			}
 		}
 	}
+	
+	//根据页数进行返回
+	elementNum := 10
+	page := t.GetString("page")
+	if page == ""{
+		t.Data["json"] = tasks
+	} else{
+		pageNumber,err := strconv.Atoi(page)
+		beginNum := pageNumber*elementNum
+		endNum := (pageNumber+1)*elementNum
+		if beginNum > len(tasks){
+			t.Data["json"] = []*models.Task{}
+		} else{
+			if endNum > len(tasks){
+				endNum = len(tasks)
+			}
+				
+			if err != nil{
+				t.Data["json"] = err.Error()
+			} else{
+				t.Data["json"] = tasks[beginNum:endNum]
+			}
+		}
+	}
+
+	
 	t.ServeJSON()
 }
 
@@ -158,36 +165,42 @@ func (t *TaskController) GetAllTaskPublish() {
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	} 
+
+	tasks,err := models.GetTaskByUserid(user.Id)
+	if err != nil{
+		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	} 
+
+		//根据页数进行返回
+	elementNum := 10
+	page := t.GetString("page")
+	if page == ""{
+		t.Data["json"] = tasks
 	} else{
-		tasks,err := models.GetTaskByUserid(user.Id)
-		if err != nil{
-			t.Data["json"] = err.Error()
+		pageNumber,err := strconv.Atoi(page)
+		beginNum := pageNumber*elementNum
+		endNum := (pageNumber+1)*elementNum
+		if beginNum > len(tasks){
+			t.Data["json"] = []*models.Task{}
 		} else{
-			//根据页数进行返回
-			elementNum := 10
-			page := t.GetString("page")
-			if page == ""{
-				t.Data["json"] = tasks
+			if endNum > len(tasks){
+				endNum = len(tasks)
+			}
+				
+			if err != nil{
+				t.Data["json"] = err
 			} else{
-				pageNumber,err := strconv.Atoi(page)
-				beginNum := pageNumber*elementNum
-				endNum := (pageNumber+1)*elementNum
-				if beginNum > len(tasks){
-					t.Data["json"] = []*models.Task{}
-				} else{
-					if endNum > len(tasks){
-						endNum = len(tasks)
-					}
-						
-					if err != nil{
-						t.Data["json"] = err
-					} else{
-						t.Data["json"] = tasks[beginNum:endNum]
-					}
-				}
+				t.Data["json"] = tasks[beginNum:endNum]
 			}
 		}
 	}
+	
+	
 	t.ServeJSON()
 }
 
@@ -211,18 +224,21 @@ func (t *TaskController) PublishTask() {
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:err.Error(),Success:false},TaskId:task.Id}
-	} else{
-		task.Userid = user.Id
-		fmt.Println(task)
-		tId,err := models.AddTask(&task)
-		//发布任务，创建发布关系
-		_,err = models.CreateNewReRelById(user.Id,tId,time.Now().Format("2006-01-02 15:04:05"))
-		if err == nil{
-			t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:"success",Success:true},TaskId:tId}
-		} else{
-			t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:err.Error(),Success:false},TaskId:tId}
-		}
+		t.ServeJSON()
+		return
 	}
+
+	task.Userid = user.Id
+	fmt.Println(task)
+	tId,err := models.AddTask(&task)
+	//发布任务，创建发布关系
+	_,err = models.CreateNewReRelById(user.Id,tId,time.Now().Format("2006-01-02 15:04:05"))
+	if err == nil{
+		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:"success",Success:true},TaskId:tId}
+	} else{
+		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:err.Error(),Success:false},TaskId:tId}
+	}
+	
 	t.ServeJSON()
 }
 
@@ -236,22 +252,26 @@ func (t *TaskController) GetPublishTask() {
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = err.Error()
-	} else{
-		tid := t.GetString(":taskId")
-		taskId,err := strconv.Atoi(tid)
-		if err==nil {
-			task, err := models.GetTask(taskId)
-			if err != nil {
-				t.Data["json"] = err.Error()
-			} else if task.Userid != user.Id{
-				t.Data["json"] = fmt.Sprintf("task %d publish by user %dy, but not publish by user %d",task.Id,task.Userid,user.Id)
-			}else{
-				t.Data["json"] = task
-			}
-		} else{
-			t.Data["json"] = err.Error()
-		}
+		t.ServeJSON()
+		return
 	}
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
+	if err!=nil{
+		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	} 
+
+	task, err := models.GetTask(taskId)
+	if err != nil {
+		t.Data["json"] = err.Error()
+	} else if task.Userid != user.Id{
+		t.Data["json"] = fmt.Sprintf("task %d publish by user %dy, but not publish by user %d",task.Id,task.Userid,user.Id)
+	}else{
+		t.Data["json"] = task
+	}
+
 	t.ServeJSON()
 }
 
@@ -267,32 +287,43 @@ func (t *TaskController) PutPublishTask() {
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = err.Error()
-	} else{
-		tid := t.GetString(":taskId")
-		taskId,err := strconv.Atoi(tid)
-		if err!=nil {
-			var task models.Task
-			json.Unmarshal(t.Ctx.Input.RequestBody, &task)
-			
-			originTask,err := models.GetTaskById(taskId)
-			if err != nil{
-				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-			} else{
-				if originTask.Userid != user.Id{
-					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task not publish by that user.")}
-				}else{
-					_ , err := models.UpdateTask(taskId, &task)
-					if err != nil {
-						t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-					} else {
-						t.Data["json"] = HttpResponseCode{Success:true,Message:"update success"}
-					}
-				}
-			}
-		}else{
-			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-		}
+		t.ServeJSON()
+		return
 	}
+
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
+	if err!=nil {
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	}
+
+	var task models.Task
+	json.Unmarshal(t.Ctx.Input.RequestBody, &task)
+	
+	originTask,err := models.GetTaskById(taskId)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	} 
+
+	if originTask.Userid != user.Id{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task not publish by that user.")}
+		t.ServeJSON()
+		return
+	}
+
+	//最终更新任务信息
+	_ , err = models.UpdateTask(taskId, &task)
+	if err != nil {
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+	} else {
+		t.Data["json"] = HttpResponseCode{Success:true,Message:"update success"}
+	}
+
+	
 	t.ServeJSON()
 }
 
@@ -307,23 +338,28 @@ func (t *TaskController) DeletePublishTask() {
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = err.Error()
-	} else{
-		tid := t.GetString(":taskId")
-		taskId,err := strconv.Atoi(tid)
-		if err ==nil{
-			originTask,err := models.GetTaskById(taskId)
-			if err != nil{
-				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-			} else if originTask.Userid != user.Id{
-				t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task not publish by that user.")}
-			}else{
-				models.DeleteTask(taskId)
-				t.Data["json"] = HttpResponseCode{Success:true,Message:"delete success"}
-			}
-		} else{
-			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-		}
+		t.ServeJSON()
+		return
+	} 
+
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
+	if err !=nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
 	}
+
+	originTask,err := models.GetTaskById(taskId)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+	} else if originTask.Userid != user.Id{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task not publish by that user.")}
+	}else{
+		models.DeleteTask(taskId)
+		t.Data["json"] = HttpResponseCode{Success:true,Message:"delete success"}
+	}
+	
 	t.ServeJSON()
 }
 
@@ -345,43 +381,48 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-	} else{
-		tid := t.GetString(":taskId")
-		taskId,err := strconv.Atoi(tid)
-		if err != nil{
-			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-		}else{
-			//拿到了任务id，现在拿到任务，并返回数组
-			task,err := models.GetTask(taskId)
-			if err != nil{
-				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-			} else{
-				//对于给定任务，访问所有的完成情况
-				relations,err := models.GetAcceptRelation(user.Id,task.Id)
-				if err != nil{
-					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-				}else{
-					//对于所有的完成关系，汇集用户信息和任务信息，制成数组并返回
-					var ansSet []*PublisherCheckTaskFinishResponse
-					for _,relation := range relations{
-						//拿到关系对应的用户信息
-						aimUser,_ := models.GetUserThroughAcRelation(relation)
-						//拿到关系对应的确认图片信息的路径
-						images,_ := models.GetImagesByRelationId(relation.Id)
-						var imageUrl []string
-						for _,image := range images{
-							imageUrl = append(imageUrl,image.ImagePath)
-						}
-						//添加两者到数组中
-						ansSet = append(ansSet,&PublisherCheckTaskFinishResponse{User:*aimUser,Proves:imageUrl})
-					}
-					//返回数组
-					t.Data["json"] = ansSet
-				}
-				
-			}
-		}
+		t.ServeJSON()
+		return
 	}
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	}
+
+	//拿到了任务id，现在拿到任务，并返回数组
+	task,err := models.GetTask(taskId)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	} 
+		//对于给定任务，访问所有的完成情况
+	relations,err := models.GetAcceptRelation(user.Id,task.Id)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	}
+
+	//对于所有的完成关系，汇集用户信息和任务信息，制成数组并返回
+	var ansSet []*PublisherCheckTaskFinishResponse
+	for _,relation := range relations{
+		//拿到关系对应的用户信息
+		aimUser,_ := models.GetUserThroughAcRelation(relation)
+		//拿到关系对应的确认图片信息的路径
+		images,_ := models.GetImagesByRelationId(relation.Id)
+		var imageUrl []string
+		for _,image := range images{
+			imageUrl = append(imageUrl,image.ImagePath)
+		}
+		//添加两者到数组中
+		ansSet = append(ansSet,&PublisherCheckTaskFinishResponse{User:*aimUser,Proves:imageUrl})
+	}
+	//返回数组
+	t.Data["json"] = ansSet
 	t.ServeJSON()
 }
 
@@ -452,48 +493,6 @@ func (t *TaskController) PublisherConfirmTask(){
 	t.ServeJSON()
 }
 
-/*
-func (t *TaskController) PublisherConfirmTask(){
-	user,err := Auth(&t.Controller)
-	fmt.Println(user)
-	if err != nil{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-	} else{
-		tid := t.GetString(":taskId")
-		taskId,err := strconv.Atoi(tid)
-		if err != nil{
-			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-		}else{
-			//拿到了任务id，现在拿到任务，并返回数组
-			task,err := models.GetTask(taskId)
-			if err != nil{
-				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-			} else{
-				//拿到发布关系，检查用户信息
-				relations,err := models.GetReleaseRelation(user.Id,task.Id)
-				if err != nil{
-					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-				} else if len(relations) != 0{
-					t.Data["json"] = HttpResponseCode{Success:false,Message:"you are not the publisher of task"}
-				} else{
-					//同一个任务id只能够确定一个任务
-					relations[0].RelTaskState = models.Task_rel_finish
-					_,err = models.UpdateReleaseRelation(relations[0])
-					if err == nil{
-						t.Data["json"] = HttpResponseCode{Success:true,Message:"finish the task"}
-					} else{
-						t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-					}
-				}
-
-			}
-			
-		}
-	}
-	t.ServeJSON()
-}
-*/
-
 // @Title 查询自己已接受任务列表
 // @Description get task by taskId
 // @Param	session		header 	string	true		"user's session ,get from login"
@@ -506,51 +505,59 @@ func (t *TaskController) GetAllTaskAccept() {
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = err.Error()
-	} else{
-		tasks,err := models.GetAcTaskByUserid(user.Id)
-		if err != nil{
-			t.Data["json"] = err.Error()
-		} else{
-			//根据页数进行返回
-			labels := t.GetString("keyword")
-			//依据label进行筛选
-			if labels != ""{
-				num := len(tasks)
-				for i:=0;i<num;i++{
-					//如果任务不包含标签
-					if(!HasLabel(tasks[i],labels)){
-						//将该元素与最后一个交换，删除最后一个元素
-						tasks[i] = tasks[num-1]
-						tasks = tasks[:num-1]
-						num--
-						i--
-					}
-				}
-			}
-			elementNum := 10
-			page := t.GetString("page")
-			if page == ""{
-				t.Data["json"] = tasks
-			} else{
-				pageNumber,err := strconv.Atoi(page)
-				beginNum := pageNumber*elementNum
-				endNum := (pageNumber+1)*elementNum
-				if beginNum > len(tasks){
-					t.Data["json"] = []*models.Task{}
-				} else{
-					if endNum > len(tasks){
-						endNum = len(tasks)
-					}
-						
-					if err != nil{
-						t.Data["json"] = err
-					} else{
-						t.Data["json"] = tasks[beginNum:endNum]
-					}
-				}
+		t.ServeJSON()
+		return
+	}
+
+	tasks,err := models.GetAcTaskByUserid(user.Id)
+	if err != nil{
+		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	} 
+
+	//根据页数进行返回
+	labels := t.GetString("keyword")
+	//依据label进行筛选
+	if labels != ""{
+		num := len(tasks)
+		for i:=0;i<num;i++{
+			//如果任务不包含标签
+			if(!HasLabel(tasks[i],labels)){
+				//将该元素与最后一个交换，删除最后一个元素
+				tasks[i] = tasks[num-1]
+				tasks = tasks[:num-1]
+				num--
+				i--
 			}
 		}
 	}
+
+	elementNum := 10
+	page := t.GetString("page")
+	if page == ""{
+		t.Data["json"] = tasks
+		t.ServeJSON()
+		return
+	} 
+	
+	pageNumber,err := strconv.Atoi(page)
+	beginNum := pageNumber*elementNum
+	endNum := (pageNumber+1)*elementNum
+	if beginNum > len(tasks){
+		t.Data["json"] = []*models.Task{}
+	} else{
+		if endNum > len(tasks){
+			endNum = len(tasks)
+		}
+			
+		if err != nil{
+			t.Data["json"] = err
+		} else{
+			t.Data["json"] = tasks[beginNum:endNum]
+		}
+	}
+	
 	t.ServeJSON()
 }
 
@@ -566,26 +573,32 @@ func (t *TaskController) GetUserAcTask() {
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = err.Error()
-	} else{
-		tid := t.GetString(":taskId")
-		taskId,err := strconv.Atoi(tid)
-		if err==nil {
-			task, err := models.GetTask(taskId)
-			if err != nil {
-				t.Data["json"] = err.Error()
-			} else {
-				acRelations,err := models.GetAcceptRelation(user.Id,taskId)
-				if err != nil{
-					t.Data["json"] = err.Error()
-				} else if len(acRelations)!=1{
-					t.Data["json"] = fmt.Sprintf("task %d and user %d's accept relation not correct",taskId,user.Id)
-				}else{
-					t.Data["json"] = task
-				}
-			}
-		} else{
-			t.Data["json"] = err.Error()
-		}
+		t.ServeJSON()
+		return
+	} 
+
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
+	if err!=nil{
+		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	} 
+
+	task, err := models.GetTask(taskId)
+	if err != nil {
+		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	} 
+
+	acRelations,err := models.GetAcceptRelation(user.Id,taskId)
+	if err != nil{
+		t.Data["json"] = err.Error()
+	} else if len(acRelations)!=1{
+		t.Data["json"] = fmt.Sprintf("task %d and user %d's accept relation not correct",taskId,user.Id)
+	}else{
+		t.Data["json"] = task
 	}
 	t.ServeJSON()
 }
@@ -602,32 +615,48 @@ func (t *TaskController) AcceptTask(){
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-	} else{
-		tid := t.GetString(":taskId")
-		taskId,err := strconv.Atoi(tid)
-		if err != nil{
-			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-		}else{
-			task,err := models.GetTaskById(taskId)
-			if err != nil{
-				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-			}else{
-				if task.MaxAccept > task.HasAccept{
-					_,err = models.CreateNewAcRelById(user.Id,taskId,time.Now().Format("2006-01-02 15:04:05"))//暂时还没有加上时间
-					if err == nil{
-						t.Data["json"] = HttpResponseCode{Success:true,Message:"accept success"}
-						task.HasAccept += 1
-						_,_ = models.UpdateTask(task.Id,task)
-					} else{
-						t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-					}
-				} else{
-					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Errorf("Enough people accept the task.").Error()}
-				}
-
-			}
-		}
+		t.ServeJSON()
+		return
+	} 
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
 	}
+
+	task,err := models.GetTaskById(taskId)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	}
+	//已经拿到了用户id和任务id，检查是否有重复情况
+	acceptRelations,err := models.GetAcceptRelation(user.Id,taskId)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	} else if len(acceptRelations)>0{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("user %d already accept task %d",user.Id,task.Id)}
+		t.ServeJSON()
+		return
+	}
+
+	if task.MaxAccept > task.HasAccept{
+		_,err = models.CreateNewAcRelById(user.Id,taskId,time.Now().Format("2006-01-02 15:04:05"))//暂时还没有加上时间
+		if err == nil{
+			t.Data["json"] = HttpResponseCode{Success:true,Message:"accept success"}
+			task.HasAccept += 1
+			_,_ = models.UpdateTask(task.Id,task)
+		} else{
+			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		}
+	} else{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("Enough people accept the task.")}
+	}
+	
 	t.ServeJSON()
 }
 
@@ -649,31 +678,38 @@ func (t *TaskController) AcceptorCheckFinishTask(){
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-	} else{
-		tid := t.GetString(":taskId")
-		taskId,err := strconv.Atoi(tid)
-		if err != nil{
-			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-		}else{
-			//拿到了任务id，现在拿到任务，并返回数组
-			task,err := models.GetTask(taskId)
-			if err != nil{
-				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-			} else{
-				images,err := models.GetImagesByUserAndTaskId(user.Id,task.Id)
-				if err !=nil{
-					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-				} else{
-					//将images数组中的路径全部取出，打包成新的数组
-					var imageUrl []string
-					for _,image := range images{
-						imageUrl = append(imageUrl,image.ImagePath)
-					}
-					t.Data["json"] = AcceptorCheckFinishCodeResponse{Task:*task,Proves:imageUrl}
-				}
-			}
-		}
+		t.ServeJSON()
+		return
+	} 
+
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
 	}
+	
+	//拿到了任务id，现在拿到任务，并返回数组
+	task,err := models.GetTask(taskId)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	}
+
+	images,err := models.GetImagesByUserAndTaskId(user.Id,task.Id)
+	if err !=nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	}
+	//将images数组中的路径全部取出，打包成新的数组
+	var imageUrl []string
+	for _,image := range images{
+		imageUrl = append(imageUrl,image.ImagePath)
+	}
+	t.Data["json"] = AcceptorCheckFinishCodeResponse{Task:*task,Proves:imageUrl}
 	t.ServeJSON()
 }
 
@@ -686,49 +722,51 @@ func (t *TaskController) AcceptorCheckFinishTask(){
 // @router /recipient/settleup/:taskId [post]
 func (t *TaskController) ExecutorSettleupTask(){
 	user,err := Auth(&t.Controller)//拿到用户登陆信息
-	if err == nil{
-		tid := t.GetString(":taskId")
-		taskId,err := strconv.Atoi(tid)
-		if err != nil{
-			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-		} else{
-			f,h,err := t.GetFile("myfile")
-			if err != nil{
-				t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-			} else{
-				//成功收到图片，将图片的路径保存到本地
-				defer f.Close()
-				path := "./image/"+h.Filename
-				t.SaveToFile("myfile",path)//保存图片到本地
-
-				//顺利拿到关系
-				acceptRelation,err := models.GetAcceptRelation(user.Id,taskId)
-				if err != nil{//鬼知道什么错误
-					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-				}else if len(acceptRelation)==0{//没有这个关系，说明没有权限或者任务id错误
-					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("no release relation between this user and task.")}
-				} else if len(acceptRelation)>1{
-					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task %d and user %d's accept relationship more than 1.",taskId,user.Id)}
-				}else{
-					//成功将图片加入到数据库
-					
-					err = models.AddImageToSQL(acceptRelation[0].Id,&models.ConfirmImage{ImagePath:h.Filename,AcceptRelation:acceptRelation[0]})
-					if err !=nil{//天晓得什么错误
-						t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
-					} else{
-						t.Data["json"] = HttpResponseCode{Success:true,Message:"success"}
-					}
-
-					acceptRelation[0].AcTaskState = models.Task_ac_check
-					_,_ = models.UpdateAcceptRelation(acceptRelation[0])
-				}
-			}
-		}
-
-	}else{
+	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
 	}
 
+	tid := t.GetString(":taskId")
+	taskId,err := strconv.Atoi(tid)
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	} 
+
+	f,h,err := t.GetFile("myfile")
+	if err != nil{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		t.ServeJSON()
+		return
+	} 
+
+	//成功收到图片，将图片的路径保存到本地
+	defer f.Close()
+	path := "./image/"+h.Filename
+	t.SaveToFile("myfile",path)//保存图片到本地
+	//顺利拿到关系
+	acceptRelation,err := models.GetAcceptRelation(user.Id,taskId)
+	if err != nil{//鬼知道什么错误
+		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+	}else if len(acceptRelation)==0{//没有这个关系，说明没有权限或者任务id错误
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("no release relation between this user and task.")}
+	} else if len(acceptRelation)>1{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task %d and user %d's accept relationship more than 1.",taskId,user.Id)}
+	}else{
+		//成功将图片加入到数据库
+		
+		err = models.AddImageToSQL(acceptRelation[0].Id,&models.ConfirmImage{ImagePath:h.Filename,AcceptRelation:acceptRelation[0]})
+		if err !=nil{//天晓得什么错误
+			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
+		} else{
+			t.Data["json"] = HttpResponseCode{Success:true,Message:"success"}
+		}
+		acceptRelation[0].AcTaskState = models.Task_ac_check
+		_,_ = models.UpdateAcceptRelation(acceptRelation[0])
+	}
 	t.ServeJSON()
 }
 
