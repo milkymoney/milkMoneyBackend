@@ -122,7 +122,7 @@ func CreateNewAcRelById(userId,taskId int,acceptDate string) (*AcceptRelation,er
 	if err != nil{
 		return nil,err
 	}
-	newRelation := &AcceptRelation{AcceptDate:acceptDate,User:user,Task:task}
+	newRelation := &AcceptRelation{AcceptDate:acceptDate,AcTaskState:Task_ac_do,User:user,Task:task}
 	acId,err := CreateAcceptRelation(newRelation)
 	if err != nil{
 		return nil,err
@@ -141,7 +141,7 @@ func CreateNewReRelById(userId,taskId int,releaseDate string) (*ReleaseRelation,
 	if err != nil{
 		return nil,err
 	}
-	newRelation := &ReleaseRelation{ReleaseDate:releaseDate,User:user,Task:task}
+	newRelation := &ReleaseRelation{ReleaseDate:releaseDate,RelTaskState:Task_rel_do,User:user,Task:task}
 	reId,err := CreateReleaseRelation(newRelation)
 	if err != nil{
 		return nil,err
@@ -264,6 +264,7 @@ func UpdateAcceptRelation(relation *AcceptRelation) (*AcceptRelation,error){
 	_,err := o.Update(relation)
 	return relation,err
 }
+
 
 
 /*

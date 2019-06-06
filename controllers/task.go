@@ -706,15 +706,21 @@ func (t *TaskController) ExecutorSettleupTask(){
 				if err != nil{//鬼知道什么错误
 					t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 				}else if len(acceptRelation)==0{//没有这个关系，说明没有权限或者任务id错误
-					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Errorf("no release relation between this user and task.").Error()}
-				} else{
+					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("no release relation between this user and task.")}
+				} else if len(acceptRelation)>1{
+					t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task %d and user %d's accept relationship more than 1.",taskId,user.Id)}
+				}else{
 					//成功将图片加入到数据库
+					
 					err = models.AddImageToSQL(acceptRelation[0].Id,&models.ConfirmImage{ImagePath:h.Filename,AcceptRelation:acceptRelation[0]})
 					if err !=nil{//天晓得什么错误
 						t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 					} else{
 						t.Data["json"] = HttpResponseCode{Success:true,Message:"success"}
 					}
+
+					acceptRelation[0].AcTaskState = models.Task_ac_check
+					_,_ = models.UpdateAcceptRelation(acceptRelation[0])
 				}
 			}
 		}
