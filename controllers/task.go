@@ -33,6 +33,13 @@ type HttpResponseCode struct{
 	Success		bool	`json:"success"`
 }
 
+
+//用于查询任务的返回结果
+type GetResponse struct{
+	*models.Task
+	models.TaskState	`json:"state"`
+}
+
 //没有测试
 //功能函数：给定一个model.Task指针和一个label，要求Task的label满足给定label的所有条目（超集）
 func HasLabel(task *models.Task,label string) bool{
@@ -57,20 +64,10 @@ func HasLabel(task *models.Task,label string) bool{
 	return true
 }
 
-func GetUnfinishedTask(user *models.User,tasks []*models.Task) ([]*models.Task,error){
+//
+func GetUnfinishedTask(tasks []*models.Task) ([]*models.Task,error){
 
 	for i:=0;i<len(tasks);i++{
-		acState,err := models.GetAcTaskStateThroughTask(user,tasks[i])
-		if err == nil{
-			if acState == models.Task_ac_finish {
-				//删除不能够显示的任务
-				fmt.Println("delete task")
-				fmt.Println(acState)
-				tasks[i] = tasks[len(tasks)-1]
-				tasks = tasks[:len(tasks)-1]
-				i--
-			}
-		} 
 		reState,err := models.GetReTaskStateThroughTask(tasks[i])
 		if err == nil{
 			if  reState==models.Task_rel_pend || reState==models.Task_rel_finish{
@@ -88,7 +85,7 @@ func GetUnfinishedTask(user *models.User,tasks []*models.Task) ([]*models.Task,e
 }
 
 
-// 拿到所有任务，按照页面进行分解。（目前仅能够返回所有的任务，没有做页面，没有做筛选）
+// 拿到所有任务（未结束的已发布任务）
 // @Title 查询当前所有未结束的任务
 // @Description get task by taskId
 // @Param	session		header 	string	true		"user's session ,get from login"
@@ -98,20 +95,15 @@ func GetUnfinishedTask(user *models.User,tasks []*models.Task) ([]*models.Task,e
 // @Failure 403 :taskId is empty
 // @router / [get]
 func (t *TaskController) GetAllTask() {
-	user,err := Auth(&t.Controller)
+
+	tasks,err := models.GetAllPublishTask()
 	if err != nil{
 		t.Data["json"] = err.Error()
 		t.ServeJSON()
 		return
 	}
-	tasks,err := models.GetAllTaskByUserid(user.Id)
-	if err != nil{
-		t.Data["json"] = err.Error()
-		t.ServeJSON()
-		return
-	} 
 	//筛选，去除已经完成的任务
-	tasks,err = GetUnfinishedTask(user,tasks)
+	tasks,err = GetUnfinishedTask(tasks)
 	if err != nil{
 		t.Data["json"] = err.Error()
 		t.ServeJSON()
@@ -190,7 +182,12 @@ func (t *TaskController) GetAllTaskPublish() {
 	elementNum := 10
 	page := t.GetString("page")
 	if page == ""{
-		t.Data["json"] = tasks
+		var result []GetResponse
+		for i:=0 ;i<len(tasks);i++{
+			state,_ := models.GetReTaskStateThroughTask(tasks[i])
+			result = append(result,GetResponse{Task:tasks[i],TaskState:state})
+		}
+		t.Data["json"] = result
 	} else{
 		pageNumber,err := strconv.Atoi(page)
 		beginNum := pageNumber*elementNum
@@ -205,7 +202,12 @@ func (t *TaskController) GetAllTaskPublish() {
 			if err != nil{
 				t.Data["json"] = err
 			} else{
-				t.Data["json"] = tasks[beginNum:endNum]
+				var result []GetResponse
+				for i:=beginNum ; i<endNum; i++{
+					state,_ := models.GetReTaskStateThroughTask(tasks[i])
+					result = append(result,GetResponse{Task:tasks[i],TaskState:state})
+				}
+				t.Data["json"] = result
 			}
 		}
 	}
@@ -230,6 +232,7 @@ type CreateTaskReturnCode struct{
 func (t *TaskController) PublishTask() {
 	var task models.Task
 	json.Unmarshal(t.Ctx.Input.RequestBody, &task)
+	task.Id = -1
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:err.Error(),Success:false},TaskId:task.Id}
@@ -237,8 +240,22 @@ func (t *TaskController) PublishTask() {
 		return
 	}
 	fmt.Println("Get task",task)
-
 	task.Userid = user.Id
+	//检查是否存在足够的资金
+	allPay := task.Reward * task.MaxAccept
+	if allPay == 0{
+		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:fmt.Sprintf("reward and maxaccept can't be 0"),Success:false},TaskId:task.Id}
+		t.ServeJSON()
+		return
+	} else if user.Balance < allPay{
+		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:fmt.Sprintf("User don't have enough money"),Success:false},TaskId:task.Id}
+		t.ServeJSON()
+		return	
+	}
+	user.Balance -= allPay
+	_,err = models.UpdateUser(user.Id,user)
+
+	task.Id = 0
 	tId,err := models.AddTask(&task)
 	//发布任务，创建发布关系
 	_,err = models.CreateNewReRelById(user.Id,tId,time.Now().Format("2006-01-02 15:04:05"))
@@ -251,10 +268,12 @@ func (t *TaskController) PublishTask() {
 	t.ServeJSON()
 }
 
+
+
 // @Title 查询自己已经发布的指定id的任务
 // @Description get task by taskId
 // @Param	taskId		path 	integer	true		"the key"
-// @Success 200 {object} models.Task
+// @Success 200 {object} models.GetResponse
 // @Failure 403 :taskId is empty
 // @router /publisher/:taskId [get]
 func (t *TaskController) GetPublishTask() {
@@ -291,7 +310,14 @@ func (t *TaskController) GetPublishTask() {
 		return	
 	}
 	
-	t.Data["json"] = task
+	state,err := models.GetReTaskStateThroughTask(task)
+	if err != nil{
+		t.Data["json"] = err.Error()
+		t.ServeJSON()
+		return
+	}
+
+	t.Data["json"] = GetResponse{Task:task,TaskState:state}
 
 	t.ServeJSON()
 }
@@ -502,13 +528,29 @@ func (t *TaskController) PublisherConfirmTask(){
 		return
 	}
 	//同一个任务id只能够确定一个任务
+	acNum := 0
 	for _,userId := range data.Users{
 		acRelation,err := models.GetAcceptRelation(userId,task.Id)
 		if err != nil{
-			acRelation[0].AcTaskState = models.Task_ac_finish
-			_,_ = models.UpdateAcceptRelation(acRelation[0])
+			if acRelation[0].AcTaskState == models.Task_ac_check{
+				acRelation[0].AcTaskState = models.Task_ac_finish
+				_,_ = models.UpdateAcceptRelation(acRelation[0])
+
+				//修改钱
+				acceptance,_ := models.GetUser(userId)
+				acceptance.Balance += task.Reward
+				_,_ = models.UpdateUser(userId,acceptance)
+
+				acNum += 1
+			}
+
 		}
 	}
+	//将剩余的钱还给发布者
+	restMoney := (task.MaxAccept - acNum) * task.Reward
+	user.Balance += restMoney
+	_,_ = models.UpdateUser(user.Id,user)
+
 	t.Data["json"] = HttpResponseCode{Success:true,Message:"string"}
 	t.ServeJSON()
 }
@@ -556,7 +598,12 @@ func (t *TaskController) GetAllTaskAccept() {
 	elementNum := 10
 	page := t.GetString("page")
 	if page == ""{
-		t.Data["json"] = tasks
+		var result []GetResponse
+		for i:=0 ;i<len(tasks);i++{
+			state,_ := models.GetAcTaskStateThroughTask(user,tasks[i])
+			result = append(result,GetResponse{Task:tasks[i],TaskState:state})
+		}
+		t.Data["json"] = result
 		t.ServeJSON()
 		return
 	} 
@@ -574,7 +621,12 @@ func (t *TaskController) GetAllTaskAccept() {
 		if err != nil{
 			t.Data["json"] = err
 		} else{
-			t.Data["json"] = tasks[beginNum:endNum]
+			var result []GetResponse
+			for i:=beginNum ; i<endNum; i++{
+				state,_ := models.GetAcTaskStateThroughTask(user,tasks[i])
+				result = append(result,GetResponse{Task:tasks[i],TaskState:state})
+			}
+			t.Data["json"] = result
 		}
 	}
 	
@@ -618,7 +670,13 @@ func (t *TaskController) GetUserAcTask() {
 	} else if len(acRelations)!=1{
 		t.Data["json"] = fmt.Sprintf("task %d and user %d's accept relation not correct",taskId,user.Id)
 	}else{
-		t.Data["json"] = task
+		state,err := models.GetAcTaskStateThroughTask(user,task)
+		if err != nil{
+			t.Data["json"] = err.Error()
+			t.ServeJSON()
+			return
+		}
+		t.Data["json"] = GetResponse{Task:task,TaskState:state}
 	}
 	t.ServeJSON()
 }

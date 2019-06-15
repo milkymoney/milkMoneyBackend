@@ -218,7 +218,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/models.Task"
+                            "$ref": "#/definitions/models.GetResponse"
                         }
                     },
                     "403": {
@@ -565,6 +565,40 @@
                 }
             }
         },
+        "/user/money": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "description": "add balance",
+                "operationId": "UserController.增加积分",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "session",
+                        "description": "true",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "money",
+                        "description": "true",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "403": {
+                        "description": ":uid is empty"
+                    }
+                }
+            }
+        },
         "/user/query": {
             "get": {
                 "tags": [
@@ -737,6 +771,10 @@
                 }
             }
         },
+        "models.GetResponse": {
+            "title": "GetResponse",
+            "type": "object"
+        },
         "models.ReleaseRelation": {
             "title": "ReleaseRelation",
             "type": "object",
@@ -777,18 +815,18 @@
                 },
                 "hasAccept": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int64"
                 },
                 "label": {
                     "type": "string"
                 },
                 "maxAccept": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int64"
                 },
                 "priority": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int64"
                 },
                 "releaseRelation": {
                     "type": "array",
@@ -797,8 +835,11 @@
                     }
                 },
                 "reward": {
-                    "type": "number",
-                    "format": "float"
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "taskName": {
+                    "type": "string"
                 },
                 "tid": {
                     "type": "integer",

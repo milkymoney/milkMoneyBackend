@@ -52,6 +52,24 @@ type ConfirmImage struct{
 	AcceptRelation		*AcceptRelation	`orm:"rel(fk)"`
 }
 
+//拿到所有的已发布任务
+
+func GetAllPublishTask() ([]*Task,error){
+	var reRelations []*ReleaseRelation
+	o := orm.NewOrm()
+	_,err := o.QueryTable("release_relation").All(&reRelations)
+	if err != nil{
+		return nil,err
+	}
+	//将拿到的关系中的id用来
+	var tasks []*Task
+	for _,relation := range(reRelations){
+		o.Read(relation.Task)
+		tasks = append(tasks,relation.Task)
+	}
+	return tasks,nil
+}
+
 //通过用户id拿去用户发布和接收的所有任务
 func GetAllTaskByUserid(userId int) ([]*Task,error){
 	var acRelations []*AcceptRelation

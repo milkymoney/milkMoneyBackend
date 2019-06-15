@@ -46,7 +46,6 @@ func GetImageFromUser(id int) string{
 */
 
 
-
 //通过用户名得到用户
 func GetUserByName(userName string) (*User,error){
 	var users []*User
@@ -155,6 +154,8 @@ func UpdateUser(userId int, uu *User) (user *User, err error) {
 	if err != nil{
 		return nil,err
 	}
+	user.Id = uu.Id
+	user.OpenId = uu.OpenId
 	user.Username = uu.Username
 	user.Balance = uu.Balance
 	user.Image = uu.Image

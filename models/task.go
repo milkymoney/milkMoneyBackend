@@ -16,12 +16,13 @@ type Task struct{
 	Userid			int			`json:"userid"`
 	Type			string		`json:"type"`//原则上是不接受空格的，表示任务属于某个类型，类型之间互斥
 	Description		string		`json:"description"`
-	Reward			float32		`json:"reward"`
+	TaskName		string		`json:"taskName"`
+	Reward			int			`json:"reward"`
 	Deadline 		string		`json:"deadline"`
 	Label			string		`json:"label"`//原则上不接受label带空格，label与label之间使用空格分隔，标签之间不互斥
-	Priority		int32				`json:"priority" orm:"default(0)"`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
-	MaxAccept		int32 				`json:"maxAccept" orm:"default(1)"`//任务同时允许的最大接受人数
-	HasAccept		int32				`json:"hasAccept" orm:"default(0)"`
+	Priority		int				`json:"priority" orm:"default(0)"`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
+	MaxAccept		int 				`json:"maxAccept" orm:"default(1)"`//任务同时允许的最大接受人数
+	HasAccept		int				`json:"hasAccept" orm:"default(0)"`
 	AcceptRelation	[]*AcceptRelation	`json:"acceptRelation" orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`json:"releaseRelation" orm:"reverse(many)"`
 }
@@ -69,6 +70,12 @@ func GetTaskByUserid(userId int) ([]*Task,error){
 	可能场景：重复的taskId（如果不是用户指定的，则不会有这种情况）
 */
 func AddTask(task *Task) (taskId int,err error){
+	//legal check
+	if task.Reward == 0{
+		return -1,fmt.Errorf("Reward can't be 0")
+	}
+
+	//insert
 	o := orm.NewOrm()
 	id64,err := o.Insert(task)
 	fmt.Println("Create task, get id",id64)
@@ -122,6 +129,7 @@ func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 	task.Userid = tt.Userid
 	task.Type = tt.Type
 	task.Description = tt.Description 
+	task.TaskName = tt.TaskName
 	task.Reward = tt.Reward
 	task.Deadline = tt.Deadline
 	task.Label = tt.Label

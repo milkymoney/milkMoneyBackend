@@ -21,7 +21,7 @@ func Auth(u *beego.Controller) (*models.User,error){
 	if runmode == "test"{
 		userId,err := u.GetInt("userId")
 		if err != nil{
-			return nil,err
+			return nil,fmt.Errorf("Login error")
 		} else{
 			user,err := models.GetUserById(userId)
 			return user,err
@@ -191,4 +191,35 @@ func (u *UserController) DownloadImage() {
 		}
 	}
 
+}
+
+// @Title 增加积分
+// @Description add balance
+// @Param	session		header 	string	true
+// @Param   money		query	string	true
+// @Success 200 {object} models.User
+// @Failure 403 :uid is empty
+// @router /money [post]
+func (u *UserController) AddMoney() {
+	user,err := Auth(&u.Controller)
+	if err != nil{
+		u.Data["json"] = err.Error()
+		u.ServeJSON()
+		return
+	} 
+
+	money,err := u.GetInt("money")
+	if err != nil{
+		u.Data["json"] = err.Error()
+		u.ServeJSON()
+		return
+	} 
+	user.Balance += money
+	_,err = models.UpdateUser(user.Id,user)
+	if err != nil{
+		u.Data["json"] = err.Error()
+		u.ServeJSON()
+		return
+	} 
+	u.ServeJSON()
 }
