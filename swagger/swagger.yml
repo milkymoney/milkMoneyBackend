@@ -547,16 +547,17 @@ definitions:
         format: int64
   models.TaskState:
     title: TaskState
-    type: string
+    format: int64
+    type: integer
     enum:
-    - Task_ac_pend = "ac_pending"
-    - Task_ac_do = "ac_doing"
-    - Task_ac_check = "ac_checking"
-    - Task_ac_finish = "ac_finish"
-    - Task_rel_pend = "rel_pending"
-    - Task_rel_do = "rel_doing"
-    - Task_rel_finish = "rel_finishing"
-    example: ac_pending
+    - Task_ac_pend = 0
+    - Task_ac_do = 1
+    - Task_ac_check = 2
+    - Task_ac_finish = 3
+    - Task_rel_pend = 4
+    - Task_rel_do = 5
+    - Task_rel_finish = 6
+    example: 0
   models.User:
     title: User
     type: object

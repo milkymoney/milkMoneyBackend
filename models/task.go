@@ -71,6 +71,7 @@ func GetTaskByUserid(userId int) ([]*Task,error){
 func AddTask(task *Task) (taskId int,err error){
 	o := orm.NewOrm()
 	id64,err := o.Insert(task)
+	fmt.Println("Create task, get id",id64)
 	taskId = int(id64)
 	if err == nil{
 		return taskId,nil

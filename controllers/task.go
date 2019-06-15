@@ -236,6 +236,7 @@ func (t *TaskController) PublishTask() {
 		t.ServeJSON()
 		return
 	}
+	fmt.Println("Get task",task)
 
 	task.Userid = user.Id
 	tId,err := models.AddTask(&task)

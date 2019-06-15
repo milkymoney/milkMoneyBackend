@@ -11,16 +11,16 @@ func init(){
 
 
 
-type TaskState string
+type TaskState int
 
 const(
-	Task_ac_pend 	TaskState = "ac_pending"	//任务正在审核
-	Task_ac_do		TaskState = "ac_doing"		//任务正在进行中
-	Task_ac_check	TaskState = "ac_checking"  //任务发布者检查任务完成情况
-	Task_ac_finish	TaskState = "ac_finish"		//其他状况
-	Task_rel_pend	TaskState = "rel_pending"	//任务完成
-	Task_rel_do		TaskState = "rel_doing"
-	Task_rel_finish	TaskState = "rel_finishing"
+	Task_ac_pend 	TaskState = 0	//任务正在审核
+	Task_ac_do		TaskState = 1		//任务正在进行中
+	Task_ac_check	TaskState = 2  //任务发布者检查任务完成情况
+	Task_ac_finish	TaskState = 3		//其他状况
+	Task_rel_pend	TaskState = 4	//任务完成
+	Task_rel_do		TaskState = 5
+	Task_rel_finish	TaskState = 6
 )
 
 /*接受关系为用户到task的多对多关系，一个用户可以接受多个任务，一个任务也可以被多个用户所接受
@@ -199,7 +199,7 @@ func GetAcTaskStateThroughTask(user *User,task *Task) (TaskState,error){
 	var relation AcceptRelation
 	err := o.QueryTable("accept_relation").Filter("task_id",task.Id).Filter("user_id",user.Id).One(&relation)
 	if err != nil{
-		return "",err
+		return -1,err
 	}else{
 		return relation.AcTaskState,nil
 	}
@@ -209,7 +209,7 @@ func GetReTaskStateThroughTask(task *Task) (TaskState,error){
 	var relation ReleaseRelation
 	err := o.QueryTable("release_relation").Filter("task_id",task.Id).One(&relation)
 	if err != nil{
-		return "",err
+		return -1,err
 	}else{
 		return relation.RelTaskState,nil
 	}
