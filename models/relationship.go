@@ -299,6 +299,18 @@ func GetAcceptRelation(userId,taskId int) (relation []*AcceptRelation,err error)
 
 }
 
+func GetAcceptRelationByTaskId(taskId int) (relation []*AcceptRelation,err error){
+	var relations []*AcceptRelation
+	o := orm.NewOrm()
+
+	if _,err := o.QueryTable("accept_relation").Filter("task_id",taskId).All(&relations); err != nil{
+		return nil,fmt.Errorf("User id or task id not correct.")
+	} else{
+		return relations,nil
+	}
+
+}
+
 func UpdateAcceptRelation(relation *AcceptRelation) (*AcceptRelation,error){
 	o := orm.NewOrm()
 	_,err := o.Update(relation)

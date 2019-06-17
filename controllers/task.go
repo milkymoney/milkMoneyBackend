@@ -445,9 +445,13 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		t.ServeJSON()
 		return
-	} 
+	} else if task.Userid != user.Id{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("Auth fail")}
+		t.ServeJSON()
+		return
+	}
 		//对于给定任务，访问所有的完成情况
-	relations,err := models.GetAcceptRelation(user.Id,task.Id)
+	relations,err := models.GetAcceptRelationByTaskId(task.Id)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		t.ServeJSON()
