@@ -461,6 +461,9 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 	//对于所有的完成关系，汇集用户信息和任务信息，制成数组并返回
 	var ansSet []*PublisherCheckTaskFinishResponse
 	for _,relation := range relations{
+		if relation.AcTaskState != models.Task_ac_finish{
+			continue
+		}
 		//拿到关系对应的用户信息
 		aimUser,_ := models.GetUserThroughAcRelation(relation)
 		//拿到关系对应的确认图片信息的路径
