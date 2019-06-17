@@ -22,7 +22,7 @@ func init() {
 	beego.TestBeegoInit(apppath)
 }
 
-TestGet is a sample to run an endpoint test
+//TestGet is a sample to run an endpoint test
 func TestGetAllTask(t *testing.T) {
 	r, _ := http.NewRequest("GET", "/v1/task/?userId=2", nil)
 	w := httptest.NewRecorder()
