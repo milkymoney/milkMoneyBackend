@@ -170,7 +170,7 @@ func TestTaskRecipientFinished(t *testing.T) {
 }
 
 func TestUser(t *testing.T) {
-	r, _ := http.NewRequest("GET", "/v1/task/user?userId=3", nil)
+	r, _ := http.NewRequest("GET", "/v1/user?userId=3", nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, r)
 
