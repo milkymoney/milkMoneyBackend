@@ -1,2 +1,6 @@
 milkMoneyBackend*
 *.exe
+*.jpg
+*.png
+tmp/
+nohup.out

@@ -304,7 +304,11 @@ func (t *TaskController) GetPublishTask() {
 		t.Data["json"] = err.Error()
 		t.ServeJSON()
 		return
-	} else if len(relations)!=1{
+	} else if len(relations) == 0{
+		t.Data["json"] = fmt.Sprintf("Release Relation of user %d and task %d not exist",user.Id,task.Id)
+		t.ServeJSON()
+		return	
+	}else if len(relations)!=1{
 		t.Data["json"] = fmt.Sprintf("Release Relation of user %d and task %d are multiple",user.Id,task.Id)
 		t.ServeJSON()
 		return	
@@ -520,7 +524,7 @@ func (t *TaskController) PublisherConfirmTask(){
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		t.ServeJSON()
 		return
-	} else if len(relations) != 0{
+	} else if len(relations) == 0{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:"you are not the publisher of task"}
 		t.ServeJSON()
 		return
