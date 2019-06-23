@@ -197,6 +197,11 @@ type BalanceData struct{
 	Recharge int `json:"recharge"`
 }
 
+type BalanceResponse struct{
+	Success		bool	`json:"success"`
+	Balance		int		`json:"balance"`
+}
+
 // @Title 增加积分
 // @Description add balance
 // @Param	session		header 	string	true
@@ -222,5 +227,7 @@ func (u *UserController) AddMoney() {
 		u.ServeJSON()
 		return
 	} 
+
+	u.Data["json"] = BalanceResponse{Success:true,Balance:user.Balance}
 	u.ServeJSON()
 }

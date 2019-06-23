@@ -433,6 +433,7 @@ type PublisherCheckTaskFinishResponse struct{
 // @Failure 403 {object} controllers.HttpResponseCode
 // @router /publisher/confirm/:taskId [get]
 func (t *TaskController) PublisherCheckTaskFinish(){
+	fmt.Println("In publisher check task.")
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
@@ -458,18 +459,18 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 		t.ServeJSON()
 		return
 	}
-		//对于给定任务，访问所有的完成情况
+	//对于给定任务，访问所有的完成情况
 	relations,err := models.GetAcceptRelationByTaskId(task.Id)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		t.ServeJSON()
 		return
 	}
-
 	//对于所有的完成关系，汇集用户信息和任务信息，制成数组并返回
 	var ansSet []*PublisherCheckTaskFinishResponse
 	for _,relation := range relations{
-		if relation.AcTaskState != models.Task_ac_finish{
+		//如果接受任务已经完成，则不再出现
+		if relation.AcTaskState != models.Task_ac_check{
 			continue
 		}
 		//拿到关系对应的用户信息
@@ -484,6 +485,7 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 		ansSet = append(ansSet,&PublisherCheckTaskFinishResponse{User:*aimUser,Proves:imageUrl,CheckState:relation.CheckState})
 	}
 	//返回数组
+	fmt.Println(ansSet)
 	t.Data["json"] = ansSet
 	t.ServeJSON()
 }
@@ -872,6 +874,8 @@ func (t *TaskController) ExecutorSettleupTask(){
 		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("no release relation between this user and task.")}
 	} else if len(acceptRelation)>1{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task %d and user %d's accept relationship more than 1.",taskId,user.Id)}
+	}else if acceptRelation[0].AcTaskState == models.Task_ac_finish{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task %d accepted by user %d has already finish with status %s.",taskId,user.Id,acceptRelation[0].CheckState)}
 	}else{
 		//成功将图片加入到数据库
 		
