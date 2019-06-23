@@ -193,13 +193,17 @@ func (u *UserController) DownloadImage() {
 
 }
 
+type BalanceData struct{
+	Recharge int `json:"recharge"`
+}
+
 // @Title 增加积分
 // @Description add balance
 // @Param	session		header 	string	true
 // @Param   money		query	string	true
 // @Success 200 {object} models.User
 // @Failure 403 :uid is empty
-// @router /money [post]
+// @router /balance [put]
 func (u *UserController) AddMoney() {
 	user,err := Auth(&u.Controller)
 	if err != nil{
@@ -208,12 +212,9 @@ func (u *UserController) AddMoney() {
 		return
 	} 
 
-	money,err := u.GetInt("money")
-	if err != nil{
-		u.Data["json"] = err.Error()
-		u.ServeJSON()
-		return
-	} 
+	var data BalanceData
+	json.Unmarshal(u.Ctx.Input.RequestBody, &data)
+	money := data.Recharge
 	user.Balance += money
 	_,err = models.UpdateUser(user.Id,user)
 	if err != nil{

@@ -23,6 +23,7 @@ type Task struct{
 	Priority		int				`json:"priority" orm:"default(0)"`//采用linux优先级策略，越小优先级越高，范围为-255~+255，一般默认为0
 	MaxAccept		int 				`json:"maxAccept" orm:"default(1)"`//任务同时允许的最大接受人数
 	HasAccept		int				`json:"hasAccept" orm:"default(0)"`
+	FinishNum		int			`json:"finishNum" orm:"default(0)"`
 	AcceptRelation	[]*AcceptRelation	`json:"acceptRelation" orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`json:"releaseRelation" orm:"reverse(many)"`
 }
@@ -136,6 +137,7 @@ func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 	task.Priority =  tt.Priority
 	task.MaxAccept = tt.MaxAccept
 	task.HasAccept = tt.HasAccept
+	task.FinishNum = tt.FinishNum
 	_,err = o.Update(task)
 	if err == nil{
 		return

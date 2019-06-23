@@ -255,6 +255,9 @@ func (t *TaskController) PublishTask() {
 	user.Balance -= allPay
 	_,err = models.UpdateUser(user.Id,user)
 
+	//发布任务的时候保证一些属性不会发生改变
+	task.HasAccept = 0
+	task.FinishNum = 0
 	task.Id = 0
 	tId,err := models.AddTask(&task)
 	//发布任务，创建发布关系
@@ -418,7 +421,8 @@ func (t *TaskController) DeletePublishTask() {
 //返回对象时一个数组，单个对象包括用户和其上传的图片数组
 type PublisherCheckTaskFinishResponse struct{
 	models.User
-	Proves 			[]string
+	Proves 			[]string	`json:"proves"`
+	CheckState		string		`json:"checkState"`
 }
 
 // @Title 发布者查询任务完成信息
@@ -477,7 +481,7 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 			imageUrl = append(imageUrl,image.ImagePath)
 		}
 		//添加两者到数组中
-		ansSet = append(ansSet,&PublisherCheckTaskFinishResponse{User:*aimUser,Proves:imageUrl})
+		ansSet = append(ansSet,&PublisherCheckTaskFinishResponse{User:*aimUser,Proves:imageUrl,CheckState:relation.CheckState})
 	}
 	//返回数组
 	t.Data["json"] = ansSet
@@ -486,7 +490,7 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 
 //发布者结算任务专用对象
 type PublisherConfirmTaskData struct{
-	Confirm		bool	`json:"confirm"`
+	CheckState	string	`json:"confirm"`
 	Users 		[]int	`json:"users"`
 }
 
@@ -519,13 +523,17 @@ func (t *TaskController) PublisherConfirmTask(){
 		return
 	} 
 	//拿到发布关系，检查用户信息
-	relations,err := models.GetReleaseRelation(user.Id,task.Id)
+	releaseRelations,err := models.GetReleaseRelation(user.Id,task.Id)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		t.ServeJSON()
 		return
-	} else if len(relations) == 0{
+	} else if len(releaseRelations) ==0{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:"you are not the publisher of task"}
+		t.ServeJSON()
+		return
+	}else if len(releaseRelations) > 1{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:"multiple publish"}
 		t.ServeJSON()
 		return
 	}
@@ -537,30 +545,50 @@ func (t *TaskController) PublisherConfirmTask(){
 		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("Strange, you don't confirm any user.")}
 		t.ServeJSON()
 		return
+	} else if data.CheckState != models.Check_pass && data.CheckState != models.Check_unpass{
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("CheckState must be passed or unpassed.")}
+		t.ServeJSON()
+		return
 	}
-	//同一个任务id只能够确定一个任务
-	acNum := 0
+
+	//如果pass，则发钱。如果hasAccept达到MaxAccept，则任务发布状态结束。
+	//如果unpass，则hasAccept减少
+	//状态都要反应在acceptRelation上
 	for _,userId := range data.Users{
 		acRelation,err := models.GetAcceptRelation(userId,task.Id)
 		if err != nil{
-			if acRelation[0].AcTaskState == models.Task_ac_check{
+			//如果关系正在被检查而且还没有被检查到
+			if acRelation[0].AcTaskState == models.Task_ac_check && acRelation[0].CheckState == models.Check_uncheck{
 				acRelation[0].AcTaskState = models.Task_ac_finish
+				acRelation[0].CheckState = data.CheckState
 				_,_ = models.UpdateAcceptRelation(acRelation[0])
 
-				//修改钱
-				acceptance,_ := models.GetUser(userId)
-				acceptance.Balance += task.Reward
-				_,_ = models.UpdateUser(userId,acceptance)
+				//通过
+				if data.CheckState == models.Check_pass{
+					//给人发钱
+					acceptance,_ := models.GetUser(userId)
+					acceptance.Balance += task.Reward
+					_,_ = models.UpdateUser(userId,acceptance)
+					//任务完成人数上升
+					task.FinishNum += 1
+					_,_ = models.UpdateTask(task.Id,task)
+					//检查任务完成人数，如果与最大人数相同，则发布者任务结束
+					if task.FinishNum == task.MaxAccept{
+						releaseRelations[0].RelTaskState = models.Task_rel_finish
+						_,_ = models.UpdateReleaseRelation(releaseRelations[0])
+					}
+					
+				}else if data.CheckState == models.Check_unpass{
+					//hasAccept减少
+					task.HasAccept -= 1
+					_,_ = models.UpdateTask(task.Id,task)
+				}
 
-				acNum += 1
+
 			}
 
 		}
 	}
-	//将剩余的钱还给发布者
-	restMoney := (task.MaxAccept - acNum) * task.Reward
-	user.Balance += restMoney
-	_,_ = models.UpdateUser(user.Id,user)
 
 	t.Data["json"] = HttpResponseCode{Success:true,Message:"string"}
 	t.ServeJSON()

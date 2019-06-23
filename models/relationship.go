@@ -23,6 +23,12 @@ const(
 	Task_rel_finish	TaskState = 6
 )
 
+const(
+	Check_uncheck	string = "unchecked"
+	Check_pass		string = "passed"
+	Check_unpass	string = "unpassed"
+)
+
 /*接受关系为用户到task的多对多关系，一个用户可以接受多个任务，一个任务也可以被多个用户所接受
 但是实现上为一对一关系，即用户id与任务id绑定，一起组成acId
 原则上一个用户不能够接受*/
@@ -31,6 +37,7 @@ type AcceptRelation struct {
 	AcceptDate		string
 	ConfirmImages	[]*ConfirmImage	`orm:"reverse(many)"`
 	AcTaskState		TaskState
+	CheckState		string
 	User			*User	`orm:"rel(fk)"`
 	Task			*Task	`orm:"rel(fk)"`
 }
@@ -269,6 +276,7 @@ func GetAcTaskByUserid(userId int) ([]*Task,error){
 
 func CreateAcceptRelation(relation *AcceptRelation) (acId int,err error){
 	o := orm.NewOrm()
+	relation.CheckState = Check_uncheck
 	id64,err := o.Insert(relation)
 	id := int(id64)
 	if err != nil{
