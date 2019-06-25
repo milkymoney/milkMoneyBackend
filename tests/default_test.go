@@ -3,6 +3,7 @@ package test
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"runtime"
 	"path/filepath"
@@ -40,7 +41,19 @@ func TestGetAllTask(t *testing.T) {
 	Convey("Subject: Test Station Endpoint\n", t, func() {
 	        Convey("Status Code Should Be 200", func() {
 	                So(w.Code, ShouldEqual, 200)
-	        })
+			})
+			Convey("Task Id should Be 2", func() {
+				So(tasks[0].Id, ShouldEqual, 2)
+			})
+			Convey("User Id should Be 2", func() {
+				So(tasks[0].Userid, ShouldEqual, 2)
+			})
+			Convey("Reward should Be  5", func() {
+				So(tasks[0].Reward, ShouldEqual, 5)
+			})
+			Convey("Max Accept should Be 5", func() {
+				So(tasks[0].MaxAccept, ShouldEqual, 5)
+			})
 	})
 }
 
@@ -59,7 +72,19 @@ func TestOwnTask(t *testing.T) {
 	Convey("Subject: Test Station Endpoint\n", t, func() {
 	        Convey("Status Code Should Be 200", func() {
 	                So(w.Code, ShouldEqual, 200)
-	        })
+			})
+			Convey("Task Id should Be 2", func() {
+				So(tasks[0].Id, ShouldEqual, 2)
+			})
+			Convey("User Id should Be 2", func() {
+				So(tasks[0].Userid, ShouldEqual, 2)
+			})
+			Convey("Reward should Be  5", func() {
+				So(tasks[0].Reward, ShouldEqual, 5)
+			})
+			Convey("Max Accept should Be 5", func() {
+				So(tasks[0].MaxAccept, ShouldEqual, 5)
+			})
 	})
 }
 
@@ -80,6 +105,15 @@ func TestOwnTaskId(t *testing.T) {
 			Convey("Task Id should Be 2", func() {
 				So(tasks.Id, ShouldEqual, 2)
 			})
+			Convey("User Id should Be 2", func() {
+				So(tasks.Userid, ShouldEqual, 2)
+			})
+			Convey("Reward should Be  5", func() {
+				So(tasks.Reward, ShouldEqual, 5)
+			})
+			Convey("Max Accept should Be 5", func() {
+				So(tasks.MaxAccept, ShouldEqual, 5)
+			})
 	})
 }
 
@@ -96,6 +130,18 @@ func TestAllInfomation(t *testing.T) {
 	Convey("Subject: Test Station Endpoint\n", t, func() {
 		Convey("Status Code Should Be 200", func() {
 			So(w.Code, ShouldEqual, 200)
+		})
+		Convey("Task Id should Be 2", func() {
+			So(tasks[0].Id, ShouldEqual, 2)
+		})
+		Convey("User Id should Be 3", func() {
+			So(tasks[0].Userid, ShouldEqual, 3)
+		})
+		Convey("Reward should Be  5", func() {
+			So(tasks[0].Reward, ShouldEqual, 5)
+		})
+		Convey("Max Accept should Be 5", func() {
+			So(tasks[0].MaxAccept, ShouldEqual, 5)
 		})
 	})
 }
@@ -170,20 +216,42 @@ func TestTaskRecipientFinished(t *testing.T) {
 }
 
 func TestUser(t *testing.T) {
-	r, _ := http.NewRequest("GET", "/v1/user?userId=3", nil)
+	r, _ := http.NewRequest("GET", "/v1/user?userId=2", nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, r)
 
-	var tasks models.Task
+	var users models.User
 	readBuf,_ := ioutil.ReadAll(w.Body)
-	json.Unmarshal(readBuf, &tasks)
-	logs.Trace(tasks.Id)
-	logs.Trace(tasks.MaxAccept)
+	json.Unmarshal(readBuf, &users)
+	logs.Trace(users.Id)
+	logs.Trace(users.Balance)
 
 	Convey("Subject: Test Station Endpoint\n", t, func() {
 		Convey("Status Code Should Be 200", func() {
 			So(w.Code, ShouldEqual, 200)
 		})
+		Convey("Task Id Should Be 2", func() {
+			So(users.Id,ShouldEqual, 2)
+		})
+		Convey("MaxAccept Should Be 24", func() {
+			So(users.Balance,ShouldEqual, 24)
+		})
+	})
+}
+
+func TestPostTask (t *testing.T) {
+	// postData := []byte(`{"reward": 5, "maxaccept": 5}`)
+	// r, _ := http.NewRequest("POST", "/v1/task/publisher?userId=3", nil)
+	
+	response, _ := http.PostForm("https://www.wtysysu.cn:10443/v1/task/publisher?userId=3", url.Values{"reward":{"10"}, "maxaccept":{"5"}})
+	body, _ := ioutil.ReadAll(response.Body)
+	
+	var tasks models.Task 
+	json.Unmarshal(body,&tasks)
+	logs.Trace(tasks)
+	logs.Trace(string(body))
+
+	Convey("Subject: Test Station Endpoint\n", t, func() {
 		Convey("Task Id Should Be 2", func() {
 			So(tasks.Id,ShouldEqual, 2)
 		})
