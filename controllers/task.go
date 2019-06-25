@@ -492,7 +492,7 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 
 //发布者结算任务专用对象
 type PublisherConfirmTaskData struct{
-	CheckState	string	`json:"confirm"`
+	CheckState	string	`json:"checkState"`
 	Users 		[]int	`json:"users"`
 }
 
