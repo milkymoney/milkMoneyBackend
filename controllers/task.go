@@ -72,8 +72,6 @@ func GetUnfinishedTask(tasks []*models.Task) ([]*models.Task,error){
 		if err == nil{
 			if  reState==models.Task_rel_pend || reState==models.Task_rel_finish{
 				//删除不能够显示的任务
-				fmt.Println("delete task")
-				fmt.Println(reState)
 				tasks[i] = tasks[len(tasks)-1]
 				tasks = tasks[:len(tasks)-1]
 				i--
@@ -239,7 +237,6 @@ func (t *TaskController) PublishTask() {
 		t.ServeJSON()
 		return
 	}
-	fmt.Println("Get task",task)
 	task.Userid = user.Id
 	//检查是否存在足够的资金
 	allPay := task.Reward * task.MaxAccept
@@ -433,7 +430,6 @@ type PublisherCheckTaskFinishResponse struct{
 // @Failure 403 {object} controllers.HttpResponseCode
 // @router /publisher/confirm/:taskId [get]
 func (t *TaskController) PublisherCheckTaskFinish(){
-	fmt.Println("In publisher check task.")
 	user,err := Auth(&t.Controller)
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
@@ -485,7 +481,6 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 		ansSet = append(ansSet,&PublisherCheckTaskFinishResponse{User:*aimUser,Proves:imageUrl,CheckState:relation.CheckState})
 	}
 	//返回数组
-	fmt.Println(ansSet)
 	t.Data["json"] = ansSet
 	t.ServeJSON()
 }
