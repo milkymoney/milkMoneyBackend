@@ -539,11 +539,11 @@ func (t *TaskController) PublisherConfirmTask(){
 	var data PublisherConfirmTaskData
 	json.Unmarshal(t.Ctx.Input.RequestBody, &data)
 	if len(data.Users) == 0{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("Strange, you don't confirm any user.")}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("上传的列表中没有用户。")}
 		t.ServeJSON()
 		return
 	} else if data.CheckState != models.Check_pass && data.CheckState != models.Check_unpass{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("CheckState must be passed or unpassed.")}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("checkState字段必须为unpassed或passed.")}
 		t.ServeJSON()
 		return
 	}
@@ -704,7 +704,7 @@ func (t *TaskController) GetUserAcTask() {
 	if err != nil{
 		t.Data["json"] = err.Error()
 	} else if len(acRelations)!=1{
-		t.Data["json"] = fmt.Sprintf("task %d and user %d's accept relation not correct",taskId,user.Id)
+		t.Data["json"] = fmt.Sprintf("任务%d与用户%d的接受关系数量不唯一",taskId,user.Id)
 	}else{
 		state,err := models.GetAcTaskStateThroughTask(user,task)
 		if err != nil{
@@ -753,7 +753,7 @@ func (t *TaskController) AcceptTask(){
 		t.ServeJSON()
 		return
 	} else if len(acceptRelations)>0{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("user %d already accept task %d",user.Id,task.Id)}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("用户%d已经接受了任务%d",user.Id,task.Id)}
 		t.ServeJSON()
 		return
 	}
@@ -768,7 +768,7 @@ func (t *TaskController) AcceptTask(){
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		}
 	} else{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("Enough people accept the task.")}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("接受任务的人达到了上限。")}
 	}
 	
 	t.ServeJSON()
@@ -866,11 +866,11 @@ func (t *TaskController) ExecutorSettleupTask(){
 	if err != nil{//鬼知道什么错误
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 	}else if len(acceptRelation)==0{//没有这个关系，说明没有权限或者任务id错误
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("no release relation between this user and task.")}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("用户与任务之间不存在接受关系")}
 	} else if len(acceptRelation)>1{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task %d and user %d's accept relationship more than 1.",taskId,user.Id)}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("任务%d和用户%d的接受关系数量大于1",taskId,user.Id)}
 	}else if acceptRelation[0].AcTaskState == models.Task_ac_finish{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task %d accepted by user %d has already finish with status %s.",taskId,user.Id,acceptRelation[0].CheckState)}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("任务%d和用户%d的接受关系已经终止，状态为%s.",taskId,user.Id,acceptRelation[0].CheckState)}
 	}else{
 		//成功将图片加入到数据库
 		
