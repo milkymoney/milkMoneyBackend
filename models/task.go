@@ -24,7 +24,7 @@ type Task struct{
 	MaxAccept		int 				`json:"maxAccept" orm:"default(1)"`//任务同时允许的最大接受人数
 	HasAccept		int				`json:"hasAccept" orm:"default(0)"`
 	FinishNum		int			`json:"finishNum" orm:"default(0)"`
-	QuestionID		int		`json:"questionID"`
+	QuestionnaireID		int		`json:"questionID"`
 	AcceptRelation	[]*AcceptRelation	`json:"acceptRelation" orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`json:"releaseRelation" orm:"reverse(many)"`
 }
@@ -139,7 +139,7 @@ func UpdateTask(taskId int,tt *Task) (task *Task,err error){
 	task.MaxAccept = tt.MaxAccept
 	task.HasAccept = tt.HasAccept
 	task.FinishNum = tt.FinishNum
-	task.QuestionID = tt.QuestionID
+	task.QuestionnaireID = tt.QuestionnaireID
 	_,err = o.Update(task)
 	if err == nil{
 		return
