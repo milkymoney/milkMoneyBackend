@@ -558,7 +558,7 @@ func (t *TaskController) PublisherConfirmTask(){
 	//状态都要反应在acceptRelation上
 	for _,userId := range data.Users{
 		acRelation,err := models.GetAcceptRelation(userId,task.Id)
-		if err != nil{
+		if err == nil{
 			//如果关系正在被检查而且还没有被检查到
 			if acRelation[0].AcTaskState == models.Task_ac_check && acRelation[0].CheckState == models.Check_uncheck{
 				acRelation[0].AcTaskState = models.Task_ac_finish
