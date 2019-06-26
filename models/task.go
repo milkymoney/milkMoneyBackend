@@ -24,7 +24,7 @@ type Task struct{
 	MaxAccept		int 				`json:"maxAccept" orm:"default(1)"`//任务同时允许的最大接受人数
 	HasAccept		int				`json:"hasAccept" orm:"default(0)"`
 	FinishNum		int			`json:"finishNum" orm:"default(0)"`
-	QuestionnaireID		int		`json:"questionID"`
+	QuestionnaireID		int		`json:"questionID" orm:"default(0)"`
 	AcceptRelation	[]*AcceptRelation	`json:"acceptRelation" orm:"reverse(many)"`
 	ReleaseRelation []*ReleaseRelation	`json:"releaseRelation" orm:"reverse(many)"`
 }
