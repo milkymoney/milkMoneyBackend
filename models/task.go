@@ -39,9 +39,9 @@ func GetTaskById(taskId int) (*Task,error){
 	o := orm.NewOrm()
 	
 	if num,err := o.QueryTable("task").Filter("id",taskId).All(&tasks); err != nil || num == 0{
-		return nil,fmt.Errorf("task id not found")
+		return nil,fmt.Errorf("所给的taskId没有对应的任务")
 	} else if num>1 {
-		return nil,fmt.Errorf("task id duplicate")
+		return nil,fmt.Errorf("taskId对应的任务重复")
 	}else{
 		return tasks[0],nil
 	}
@@ -52,7 +52,7 @@ func GetTaskByUserid(userId int) ([]*Task,error){
 	o := orm.NewOrm()
 	
 	if num,err := o.QueryTable("task").Filter("userid",userId).All(&tasks); err != nil || num == 0{
-		return nil,fmt.Errorf("this user don't have any task")
+		return nil,fmt.Errorf("该用户没有发布任务")
 	} else{
 		return tasks,nil
 	}
@@ -74,13 +74,12 @@ func GetTaskByUserid(userId int) ([]*Task,error){
 func AddTask(task *Task) (taskId int,err error){
 	//legal check
 	if task.Reward == 0{
-		return -1,fmt.Errorf("Reward can't be 0")
+		return -1,fmt.Errorf("任务报酬不能为0")
 	}
 
 	//insert
 	o := orm.NewOrm()
 	id64,err := o.Insert(task)
-	fmt.Println("Create task, get id",id64)
 	taskId = int(id64)
 	if err == nil{
 		return taskId,nil

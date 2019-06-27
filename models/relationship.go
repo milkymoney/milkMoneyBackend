@@ -153,7 +153,7 @@ func GetImagesByUserAndTaskId(userId,taskId int) ([]*ConfirmImage,error){
 	if err!=nil{
 		return nil,err
 	} else if len(relations)==0{
-		return nil,fmt.Errorf("No relation of this user and task.")
+		return nil,fmt.Errorf("该用户与任务之间不存在接受关系")
 	}
 	images,err := GetImagesByRelationId(relations[0].Id)
 	return images,err
@@ -251,7 +251,7 @@ func GetAcTaskByUserid(userId int) ([]*Task,error){
 	var relations []*AcceptRelation
 	o := orm.NewOrm()
 	if num,err := o.QueryTable("accept_relation").Filter("user_id",userId).All(&relations); err != nil || num == 0{
-		return nil,fmt.Errorf("User don't have accept relation or have other problem.")
+		return nil,fmt.Errorf("用户没有接受过任务，或者存在其他问题。")
 	} else{
 		//根据拿到的relations读取tasks
 		var tasks []*Task
@@ -300,7 +300,7 @@ func GetAcceptRelation(userId,taskId int) (relation []*AcceptRelation,err error)
 	o := orm.NewOrm()
 
 	if _,err := o.QueryTable("accept_relation").Filter("user_id",userId).Filter("task_id",taskId).All(&relations); err != nil{
-		return nil,fmt.Errorf("User id or task id not correct.")
+		return nil,fmt.Errorf("用户id与任务id无法找到接受关系")
 	} else{
 		return relations,nil
 	}
@@ -312,7 +312,7 @@ func GetAcceptRelationByTaskId(taskId int) (relation []*AcceptRelation,err error
 	o := orm.NewOrm()
 
 	if _,err := o.QueryTable("accept_relation").Filter("task_id",taskId).All(&relations); err != nil{
-		return nil,fmt.Errorf("User id or task id not correct.")
+		return nil,fmt.Errorf("用户id与任务id无法找到接受关系")
 	} else{
 		return relations,nil
 	}
@@ -396,7 +396,7 @@ func GetReleaseRelation(userId,taskId int) (relation []*ReleaseRelation,err erro
 	o := orm.NewOrm()
 
 	if _,err := o.QueryTable("release_relation").Filter("user_id",userId).Filter("task_id",taskId).All(&relations); err != nil{
-		return nil,fmt.Errorf("User id or task id not correct.")
+		return nil,fmt.Errorf("用户id与任务id无法找到发布关系.")
 	} else{
 		return relations,nil
 	}
@@ -411,7 +411,7 @@ func GetReleaseRelationByTaskId(taskId int) (relation []*ReleaseRelation,err err
 	o := orm.NewOrm()
 
 	if _,err := o.QueryTable("release_relation").Filter("task_id",taskId).All(&relations); err != nil{
-		return nil,fmt.Errorf("User id or task id not correct.")
+		return nil,fmt.Errorf("用户id与任务id无法找到发布关系.")
 	} else{
 		return relations,nil
 	}

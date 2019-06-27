@@ -30,7 +30,6 @@ type User struct {
 //图片测试：给用户添加头像
 func AddImageToUser(id int, image string){
 	user,err := GetUser(id)
-	fmt.Println(err)
 	user.Image = image
 	_,err = UpdateUser(user.Id,user)
 	fmt.Println(err)
@@ -52,9 +51,9 @@ func GetUserByName(userName string) (*User,error){
 	o := orm.NewOrm()
 	
 	if num,err := o.QueryTable("user").Filter("username",userName).All(&users); err != nil || num == 0{
-		return nil,fmt.Errorf("UserName not exist")
+		return nil,fmt.Errorf("不存在该用户名")
 	} else if num>1 {
-		return nil,fmt.Errorf("UserName duplicate")
+		return nil,fmt.Errorf("重复的用户名")
 	}else{
 		return users[0],nil
 	}
@@ -66,9 +65,9 @@ func GetUserById(userId int) (*User,error){
 	o := orm.NewOrm()
 	
 	if num,err := o.QueryTable("user").Filter("id",userId).All(&users); err != nil || num == 0{
-		return nil,fmt.Errorf("user id not found")
+		return nil,fmt.Errorf("无法根据用户id找到用户")
 	} else if num>1 {
-		return nil,fmt.Errorf("user id duplicate")
+		return nil,fmt.Errorf("同一用户id对应多个用户")
 	}else{
 		return users[0],nil
 	}
@@ -80,9 +79,9 @@ func GetUserByOpenId(openId string) (*User,error){
 	o := orm.NewOrm()
 	
 	if num,err := o.QueryTable("user").Filter("open_id",openId).All(&users); err != nil || num == 0{
-		return nil,fmt.Errorf("user id not found")
+		return nil,fmt.Errorf("用户id无法找到用户")
 	} else if num>1 {
-		return nil,fmt.Errorf("user id duplicate")
+		return nil,fmt.Errorf("同一用户id对应多个用户")
 	}else{
 		return users[0],nil
 	}
@@ -219,14 +218,10 @@ func getOpenIdThroughCode(code string) (string,error){
 	}
 	code2session := Code2sessionResult{}
 
-	fmt.Println("In function getOpenIDThroughCode,get the request")
-	
-
 	err = json.Unmarshal(request, &code2session)
 	if err != nil {
 		return "",err
 	}
-	fmt.Println(code2session)
 	if code2session.ErrorCode > 0 {
 		err = fmt.Errorf("%d=>%s", code2session.ErrorCode, code2session.ErrorMsg)
 		return "",err
