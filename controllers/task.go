@@ -241,11 +241,11 @@ func (t *TaskController) PublishTask() {
 	//检查是否存在足够的资金
 	allPay := task.Reward * task.MaxAccept
 	if allPay == 0{
-		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:fmt.Sprintf("reward and maxaccept can't be 0"),Success:false},TaskId:task.Id}
+		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:fmt.Sprintf("报酬不能为0"),Success:false},TaskId:task.Id}
 		t.ServeJSON()
 		return
 	} else if user.Balance < allPay{
-		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:fmt.Sprintf("User don't have enough money"),Success:false},TaskId:task.Id}
+		t.Data["json"] = CreateTaskReturnCode{HttpResponseCode:HttpResponseCode{Message:fmt.Sprintf("用户没有足够的资金"),Success:false},TaskId:task.Id}
 		t.ServeJSON()
 		return	
 	}
@@ -305,11 +305,11 @@ func (t *TaskController) GetPublishTask() {
 		t.ServeJSON()
 		return
 	} else if len(relations) == 0{
-		t.Data["json"] = fmt.Sprintf("Release Relation of user %d and task %d not exist",user.Id,task.Id)
+		t.Data["json"] = fmt.Sprintf("用户%d没有发布任务%d",user.Id,task.Id)
 		t.ServeJSON()
 		return	
 	}else if len(relations)!=1{
-		t.Data["json"] = fmt.Sprintf("Release Relation of user %d and task %d are multiple",user.Id,task.Id)
+		t.Data["json"] = fmt.Sprintf("用户%d发布了多个任务%d",user.Id,task.Id)
 		t.ServeJSON()
 		return	
 	}
@@ -361,7 +361,7 @@ func (t *TaskController) PutPublishTask() {
 	} 
 
 	if originTask.Userid != user.Id{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task not publish by that user.")}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("任务不是由该用户发布。")}
 		t.ServeJSON()
 		return
 	}
@@ -371,7 +371,7 @@ func (t *TaskController) PutPublishTask() {
 	if err != nil {
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 	} else {
-		t.Data["json"] = HttpResponseCode{Success:true,Message:"update success"}
+		t.Data["json"] = HttpResponseCode{Success:true,Message:"更新成功"}
 	}
 
 	
@@ -405,10 +405,10 @@ func (t *TaskController) DeletePublishTask() {
 	if err != nil{
 		t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 	} else if originTask.Userid != user.Id{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("task not publish by that user.")}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("任务不是由该用户发布。")}
 	}else{
 		models.DeleteTask(taskId)
-		t.Data["json"] = HttpResponseCode{Success:true,Message:"delete success"}
+		t.Data["json"] = HttpResponseCode{Success:true,Message:"删除成功"}
 	}
 	
 	t.ServeJSON()
@@ -451,7 +451,7 @@ func (t *TaskController) PublisherCheckTaskFinish(){
 		t.ServeJSON()
 		return
 	} else if task.Userid != user.Id{
-		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("Auth fail")}
+		t.Data["json"] = HttpResponseCode{Success:false,Message:fmt.Sprintf("登陆错误")}
 		t.ServeJSON()
 		return
 	}
@@ -761,7 +761,7 @@ func (t *TaskController) AcceptTask(){
 	if task.MaxAccept > task.HasAccept{
 		_,err = models.CreateNewAcRelById(user.Id,taskId,time.Now().Format("2006-01-02 15:04:05"))//暂时还没有加上时间
 		if err == nil{
-			t.Data["json"] = HttpResponseCode{Success:true,Message:"accept success"}
+			t.Data["json"] = HttpResponseCode{Success:true,Message:"成功"}
 			task.HasAccept += 1
 			_,_ = models.UpdateTask(task.Id,task)
 		} else{
@@ -878,7 +878,7 @@ func (t *TaskController) ExecutorSettleupTask(){
 		if err !=nil{//天晓得什么错误
 			t.Data["json"] = HttpResponseCode{Success:false,Message:err.Error()}
 		} else{
-			t.Data["json"] = HttpResponseCode{Success:true,Message:"success"}
+			t.Data["json"] = HttpResponseCode{Success:true,Message:"成功"}
 		}
 		acceptRelation[0].AcTaskState = models.Task_ac_check
 		_,_ = models.UpdateAcceptRelation(acceptRelation[0])

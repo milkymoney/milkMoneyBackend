@@ -21,7 +21,7 @@ func Auth(u *beego.Controller) (*models.User,error){
 	if runmode == "test"{
 		userId,err := u.GetInt("userId")
 		if err != nil{
-			return nil,fmt.Errorf("Login error")
+			return nil,fmt.Errorf("登陆错误")
 		} else{
 			user,err := models.GetUserById(userId)
 			return user,err
@@ -36,7 +36,7 @@ func Auth(u *beego.Controller) (*models.User,error){
 				return user,nil
 			}
 		} else {
-			return nil,fmt.Errorf("need login")
+			return nil,fmt.Errorf("需要登陆")
 		}
 	}
 
@@ -93,11 +93,8 @@ func (u *UserController) Put() {
 // @Failure 403 user not exist
 // @router /login [get]
 func (u *UserController) Login() {
-	fmt.Println("In controller function login, it's session:")
-	fmt.Println(u.Ctx.Input.CruSession)
 	session := u.Ctx.Input.CruSession
 	code := u.GetString("code")
-	fmt.Println("Code" + code)
 	if openid,err := models.Login(code);err==nil {
 		//设置session
 		u.Data["json"] = openid
@@ -105,7 +102,6 @@ func (u *UserController) Login() {
 	} else {
 		u.Data["json"] = err.Error()
 	}
-	fmt.Println("Set session over")
 	u.ServeJSON()
 }
 
@@ -118,13 +114,9 @@ func (u *UserController) Login() {
 // @Failure 403 user not exist
 // @router /query [get]
 func (u *UserController) Query() {
-	fmt.Println("In Query")
 	session := u.Ctx.Input.CruSession
-	fmt.Println("In controller's function query, get the session")
-	fmt.Println(session)
 	if val := session.Get("openid"); val != nil {
 		user,err := models.GetUserByOpenId(val.(string))
-		fmt.Println(user)
 		if err !=nil{
 			u.Data["json"] = "openid error"
 		} else{
@@ -144,23 +136,17 @@ func (u *UserController) Query() {
 // @Failure 403 user not exist
 // @router /queryImage [post]
 func (u *UserController) QueryImage() {
-	fmt.Println("In Query")
 	session := u.Ctx.Input.CruSession
 	if val := session.Get("openid"); val != nil {
 		user,err := models.GetUserByOpenId(val.(string))
 		if err == nil {
-			fmt.Println("user id")
-			fmt.Println(user.Id)
 			f,h,err := u.GetFile("myfile")
-			fmt.Println(f)
 			if err != nil{
 				fmt.Println("get file err",err)
 			} else{
 				//成功收到图片
 				path := "./image/"+h.Filename
 				u.SaveToFile("myfile",path)//保存图片到本地
-				fmt.Println("Add path to file:")
-				fmt.Println(path)
 				models.AddImageToUser(user.Id,path)
 				defer f.Close()
 			}
@@ -179,13 +165,10 @@ func (u *UserController) QueryImage() {
 // @Failure 403 user not exist
 // @router /download [get]
 func (u *UserController) DownloadImage() {
-	fmt.Println("In Query")
 	session := u.Ctx.Input.CruSession
 	if val := session.Get("openid"); val != nil {
 		user,err := models.GetUserByOpenId(val.(string))
 		if err == nil {
-			fmt.Println("user id")
-			fmt.Println(user.Id)
 			path := models.GetImageFromUser(user.Id)
 			u.Ctx.Output.Download(path,"test.png")
 		}
