@@ -29,6 +29,7 @@ func Auth(u *beego.Controller) (*models.User,error){
 	} else{
 		session := u.Ctx.Input.CruSession
 		if val := session.Get("openid"); val != nil {
+			fmt.Println("openid",val)
 			user,err := models.GetUserByOpenId(val.(string))
 			if err != nil{
 				return nil,err

@@ -249,7 +249,7 @@ func Login(code string) (string,error) {
 	//检查openId是否第一次出现，如果第一次出现，则进行写入操作
 	_,err = GetUserByOpenId(openId)
 	if err != nil{
-		if err.Error() == "user id not found"{
+		if err.Error() == "用户id无法找到用户"{
 			AddUser(&User{OpenId:openId})
 		}
 	}
