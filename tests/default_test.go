@@ -42,8 +42,8 @@ func TestGetAllTask(t *testing.T) {
 	        Convey("Status Code Should Be 200", func() {
 	                So(w.Code, ShouldEqual, 200)
 			})
-			Convey("Task Id should Be 15", func() {
-				So(tasks[1].Id, ShouldEqual, 15)
+			Convey("Task Id should Be 26", func() {
+				So(tasks[1].Id, ShouldEqual, 26)
 			})
 			Convey("User Id should Be 2", func() {
 				So(tasks[1].Userid, ShouldEqual, 2)
@@ -234,8 +234,8 @@ func TestUser(t *testing.T) {
 		Convey("Task Id Should Be 2", func() {
 			So(users.Id,ShouldEqual, 2)
 		})
-		Convey("Balance Should Be 8", func() {
-			So(users.Balance,ShouldEqual, 8)
+		Convey("Balance Should Be 106", func() {
+			So(users.Balance,ShouldEqual, 106)
 		})
 	})
 }
